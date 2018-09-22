@@ -1,0 +1,14 @@
+# 修改eureka服务的端口号.
+server:
+  port: 8761
+# 配置eureka服务端的注册地址url.
+eureka:
+  client:
+    service-url:
+      defaultZone: http://192.168.1.103:8761/eureka/
+# 将eureka服务端不显示在eureka控制面板上.
+    register-with-eureka: false
+# 在eureka控制面板中显示的服务名称.
+spring:
+  application:
+    name: eureka
