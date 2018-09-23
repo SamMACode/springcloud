@@ -1,0 +1,11 @@
+# 配置eureka服务端的注册地址url.
+eureka:
+  client:
+    service-url:
+      defaultZone: http://192.168.1.103:8761/eureka/
+  instance:
+    hostname: localhost
+# 配置客户端应用名称.
+spring:
+  application:
+    name: client

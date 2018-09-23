@@ -8,6 +8,9 @@ eureka:
       defaultZone: http://192.168.1.103:8761/eureka/
 # 将eureka服务端不显示在eureka控制面板上.
     register-with-eureka: false
+# 关闭springcloud的自我保护模式,在product生产环境不建议关闭.
+  server:
+    enable-self-preservation: false
 # 在eureka控制面板中显示的服务名称.
 spring:
   application:
