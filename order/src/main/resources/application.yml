@@ -16,3 +16,8 @@ spring:
 # 设置spring.data.jpa.show-sql为true,将生成的hql语句打印到控制台上.
   jpa:
     show-sql: true
+# 配置ribbon的负载均衡策略(random随机访问,默认为roundrobin轮询发送).
+# product:
+#  ribbon:
+#    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
+

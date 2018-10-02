@@ -42,6 +42,7 @@ public class OrderController {
      * */
     @RequestMapping("/create")
     public ResultVO<Map<String, String>> create(@Valid OrderForm orderForm, BindingResult bindingResult) throws OrderException {
+        // 1.第一步对ajax传递来的参数进行校验.
         if(bindingResult.hasErrors()) {
             log.error("[创建订单]参数不正确, orderForm={}", orderForm);
             throw new OrderException(OrderResultEnum.PARAM_ERROR.getCode(),
@@ -53,9 +54,16 @@ public class OrderController {
         if(CollectionUtils.isEmpty(orderDTO.getOrderDetailList())) {
             throw new OrderException(OrderResultEnum.CART_EMPTY);
         }
-        // 调用订单Order服务创建订单信息.
-        OrderDTO result = orderService.create(orderDTO);
 
+        // TODO 2.查询商品服务(调用product服务接口).
+
+        // TODO 3.计算Order订单中的商品总价.
+
+        // TODO 4.扣库存(调用product服务接口).
+
+        // 5.调用订单Order服务创建订单信息.
+        OrderDTO result = orderService.create(orderDTO);
+        // 返回处理后的结果,包括订单id编号以及订单描述信息code&message.
         Map<String, String> map = new HashMap<>();
         map.put("orderId", result.getOrderId());
         return ResultVOUtils.success(map);

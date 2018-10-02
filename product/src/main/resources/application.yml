@@ -16,3 +16,7 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+# 设置整个应用的上下文路径(在访问的时候需要在浏览器port后面添加上contxt-path路径).
+#server:
+#  servlet:
+#    context-path: /product
