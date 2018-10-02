@@ -55,12 +55,6 @@ public class OrderController {
             throw new OrderException(OrderResultEnum.CART_EMPTY);
         }
 
-        // TODO 2.查询商品服务(调用product服务接口).
-
-        // TODO 3.计算Order订单中的商品总价.
-
-        // TODO 4.扣库存(调用product服务接口).
-
         // 5.调用订单Order服务创建订单信息.
         OrderDTO result = orderService.create(orderDTO);
         // 返回处理后的结果,包括订单id编号以及订单描述信息code&message.
