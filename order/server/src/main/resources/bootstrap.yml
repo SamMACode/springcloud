@@ -1,0 +1,43 @@
+spring:
+# 配置整个单体应用在eureka服务上的名称.
+  application:
+    name: order
+# 开启spring cloud的config服务发现的配置.
+  cloud:
+    config:
+      discovery:
+        enabled: true
+# 配置spring cloud config的配置服务id编号.
+        service-id: config
+# 配置配置文件中的profile类型为dev.
+      profile: test
+# 当修改了eureka服务的port后,需要将eureka的配置写入到bootstrap.yml中;
+# 早于application.yml发现config服务.
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8762/eureka/
+
+# 将order订单服务注册到eureka服务上(整个order项目的配置文件已存放于github).
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka/
+
+# 配置整个连接数据库连接信息.
+#  datasource:
+#    driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://localhost:3306/springcloud_sell?characterEncoding=utf-8&useUnicode=true&useSSL=false
+#    username: dong
+#    password: java
+# 设置spring.data.jpa.show-sql为true,将生成的hql语句打印到控制台上.
+#  jpa:
+#    show-sql: true
+
+# 配置ribbon的负载均衡策略(random随机访问,默认为roundrobin轮询发送).
+# product:
+#  ribbon:
+#    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
+
+## 在整个配置中/{label}-/{name}-{profiles}
+## 其中label在git中代表的是分支名 branch, name代表的是文件名 filename(servername), profiles表示的是环境名称.

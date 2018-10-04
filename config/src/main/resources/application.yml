@@ -1,0 +1,19 @@
+# 设置整个spring cloud项目的名称.
+spring:
+  application:
+    name: config
+# 配置spring cloud config配置文件在git上的地址.
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/DongMa/config-repo
+          username: 1253341044@qq.com
+          password:
+# 配置spring cloud从远端的git服务器上拉取下来配置文件存放的路径.
+          basedir: /Volumes/extension/gits/cloud/config/basedir
+# 设置eureka server端的地址,用于注册服务.
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8762/eureka/
