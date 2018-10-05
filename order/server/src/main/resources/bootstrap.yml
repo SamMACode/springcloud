@@ -11,6 +11,14 @@ spring:
         service-id: config
 # 配置配置文件中的profile类型为dev.
       profile: test
+# 对spring Cloud Stream消息进行分组group,当启动多个实例的时候保证只有一个实例消费消息.
+    stream:
+      bindings:
+        myMessageOutput:
+          group: order
+# 对消息队列中的消息内容使用json进行序列化与反序列化(在rabbitMQ中看到的是json字符串).
+          content-type: application/json
+
 # 当修改了eureka服务的port后,需要将eureka的配置写入到bootstrap.yml中;
 # 早于application.yml发现config服务.
 eureka:
