@@ -1,6 +1,7 @@
 package com.netflix.cloud.order.service;
 
 import com.netflix.cloud.order.dto.OrderDTO;
+import com.netflix.cloud.order.exception.OrderException;
 
 /**
  * 封装调用OrderService生成订单信息的接口
@@ -10,6 +11,16 @@ import com.netflix.cloud.order.dto.OrderDTO;
  **/
 public interface OrderService {
 
-    public OrderDTO create(OrderDTO orderTransferObject);
+    /**
+     * 创建新的订单.
+     * @param orderTransferObject
+     * */
+    OrderDTO create(OrderDTO orderTransferObject);
+
+    /**
+     * 用于卖家完结新的订单.
+     * @param orderId
+     * */
+    OrderDTO finish(String orderId) throws OrderException;
 
 }

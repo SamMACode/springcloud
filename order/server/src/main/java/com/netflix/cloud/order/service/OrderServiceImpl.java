@@ -3,8 +3,10 @@ package com.netflix.cloud.order.service;
 import com.netflix.cloud.order.dataobject.OrderDetail;
 import com.netflix.cloud.order.dataobject.OrderMaster;
 import com.netflix.cloud.order.dto.OrderDTO;
+import com.netflix.cloud.order.enums.OrderResultEnum;
 import com.netflix.cloud.order.enums.OrderStatusEnum;
 import com.netflix.cloud.order.enums.PayStatusEnum;
+import com.netflix.cloud.order.exception.OrderException;
 import com.netflix.cloud.order.repository.OrderDetailRepository;
 import com.netflix.cloud.order.repository.OrderMasterRepository;
 import com.netflix.cloud.order.utils.KeyUtil;
@@ -14,10 +16,13 @@ import com.netflix.cloud.product.common.ProductInfoOutput;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -40,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
     private ProductClient productClient;
 
     @Override
+    @Transactional
     public OrderDTO create(OrderDTO orderDTO) {
         String orderId = KeyUtil.getUniqueKey();
 
@@ -83,6 +89,37 @@ public class OrderServiceImpl implements OrderService {
         orderMaster.setPayStatus(PayStatusEnum.WAITING.getCode());
 
         orderMasterRepository.save(orderMaster);
+        return orderDTO;
+    }
+
+    @Override
+    @Transactional
+    public OrderDTO finish(String orderId) throws OrderException {
+        // 1.先根据订单id查询订单是否存在.
+        Optional<OrderMaster> optionalOrderMaster = orderMasterRepository.findById(orderId);
+        if(!optionalOrderMaster.isPresent()) {
+            throw new OrderException(OrderResultEnum.ORDER_NOT_EXIST);
+        }
+
+        // 2.判断订单的状态是否为已完结的状态.
+        OrderMaster orderMaster = optionalOrderMaster.get();
+        if(!orderMaster.getOrderStatus().equals(OrderStatusEnum.NEW.getOrderStatus())) {
+            throw new OrderException(OrderResultEnum.ORDER_STATUS_ERROR);
+        }
+
+        // 3.将订单设置为已完结的状态.
+        orderMaster.setOrderStatus(OrderStatusEnum.FINISHED.getOrderStatus());
+        orderMasterRepository.save(orderMaster);
+
+        // 查询订单详情,master订单下的多个明细订单detail.
+        List<OrderDetail> orderDetails = orderDetailRepository.findOrderDetailsByOrderId(orderId);
+        if(CollectionUtils.isEmpty(orderDetails)) {
+            throw new OrderException(OrderResultEnum.ORDER_DETAILS_IS_EMPTY);
+        }
+
+        OrderDTO orderDTO = new OrderDTO();
+        BeanUtils.copyProperties(orderMaster, orderDTO);
+        orderDTO.setOrderDetailList(orderDetails);
         return orderDTO;
     }
 }
