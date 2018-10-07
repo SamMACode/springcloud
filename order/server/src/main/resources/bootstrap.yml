@@ -18,6 +18,13 @@ spring:
           group: order
 # 对消息队列中的消息内容使用json进行序列化与反序列化(在rabbitMQ中看到的是json字符串).
           content-type: application/json
+# 开启zipkin将order数据进行导入.
+  zipkin:
+    base-url: http://localhost:9411
+# 在zipkin中进行请求采样的比例设置为100%.
+  sleuth:
+    sampler:
+      probability: 1
 
 # 当修改了eureka服务的port后,需要将eureka的配置写入到bootstrap.yml中;
 # 早于application.yml发现config服务.
@@ -25,12 +32,11 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8762/eureka/
-
 # 使用feign组件整合hystrix熔断器.
 feign:
   hystrix:
     enabled: true
-
+# 对hystrix中的方法(指定方法/默认方法)设置超时时间.
 hystrix:
   command:
     default:
@@ -44,7 +50,16 @@ hystrix:
       execution:
         isolation:
           thread:
-            timeoutInMilliseconds: 1000
+            timeoutInMilliseconds: 5000
+# 调整feign中的logging日志的级别为debug
+logging:
+  level:
+    org.springframework.cloud.openfeign: debug
+
+
+
+
+
 
 # 去除掉hystrix之前的application前缀(在spring cloud RELEASE正式版中不生效).
 #management:

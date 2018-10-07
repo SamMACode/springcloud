@@ -16,3 +16,8 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8762/eureka/
+
+# 调整feign中的logging日志的级别为debug
+logging:
+  level:
+    org.springframework.cloud.openfeign: debug

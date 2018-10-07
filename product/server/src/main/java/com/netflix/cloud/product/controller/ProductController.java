@@ -84,7 +84,7 @@ public class ProductController {
      * */
     @PostMapping("/listForOrder")
     public List<ProductInfoOutput> listForOrder(@RequestBody List<String> productIdList) throws InterruptedException {
-        Thread.sleep(2000);
+//        Thread.sleep(2000);
         // TODO 根据商品id编号查询商品详细信息.
         List<ProductInfoOutput> productInfoList = productService.findList(productIdList);
         return productInfoList;
