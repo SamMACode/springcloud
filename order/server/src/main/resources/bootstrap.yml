@@ -26,6 +26,32 @@ eureka:
     service-url:
       defaultZone: http://localhost:8762/eureka/
 
+# 使用feign组件整合hystrix熔断器.
+feign:
+  hystrix:
+    enabled: true
+
+hystrix:
+  command:
+    default:
+    # 配置hystrix调用服务的超时时间.
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 1000
+    # 给特定的方法设置超时时间.
+    getProductInfoList:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 1000
+
+# 去除掉hystrix之前的application前缀(在spring cloud RELEASE正式版中不生效).
+#management:
+#  server:
+#    servlet:
+#      context-path: /
+
 # 将order订单服务注册到eureka服务上(整个order项目的配置文件已存放于github).
 #eureka:
 #  client:

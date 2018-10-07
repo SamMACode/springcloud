@@ -16,3 +16,12 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8762/eureka/
+
+# 配置zuul调用服务的超时时间(其本质上还是hystrix的调用超时).
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 5000

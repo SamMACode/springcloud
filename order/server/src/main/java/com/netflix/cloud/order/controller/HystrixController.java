@@ -4,6 +4,7 @@ import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -25,11 +26,22 @@ public class HystrixController {
      * execution.isolation.thread.timeoutInMilliseconds
      * 该属性可以从来设置hystrix调用的超时时间(在HystrixCommandProperties文件里).
      * */
-    @HystrixCommand(commandProperties = {
+    /*@HystrixCommand(commandProperties = {
         @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000")
-    })
+    })*/
+
+    /*@HystrixCommand(commandProperties = {
+            @HystrixProperty(name = "circuitBreaker.enabled", value = "true"),      // 设置熔断是否开启
+            @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "10"),    // 表示在滚动期断路器的最小请求数.
+            @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "10000"), // 设置熔断器时间窗的时间.
+            @HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "60")   // 表示打开熔断器的百分比(当调用失败达到60%以上时候)
+    })*/
+    @HystrixCommand
     @GetMapping("getProductInfoList")
-    public String getProductInfoList() {
+    public String getProductInfoList(@RequestParam("number") Integer number) {
+        if(number % 2 == 0) {
+            return "success";
+        }
         RestTemplate restTemplate = new RestTemplate();
         return restTemplate.postForObject("http://localhost:8085/product/listForOrder",
                 Arrays.asList("157875196366160022"),
