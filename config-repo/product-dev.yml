@@ -1,0 +1,19 @@
+spring:
+  # 配置数据库驱动连接信息.
+  datasource:
+    url: jdbc:mysql://localhost:3306/springcloud_sell?characterEncoding=utf-8&useUnicode=true&useSSL=false
+    driver-class-name: com.mysql.jdbc.Driver
+    username: dong
+    password: java
+# 将Jpa生成的sql打印到控制台上.
+  jpa:
+    show-sql: true
+# 设置整个应用的上下文路径(在访问的时候需要在浏览器port后面添加上contxt-path路径).
+#server:
+#  servlet:
+#    context-path: /product
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
