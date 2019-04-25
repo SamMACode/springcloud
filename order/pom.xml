@@ -6,9 +6,9 @@
 	<artifactId>order</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
     <modules>
-        <module>client</module>
-		<module>common</module>
-		<module>server</module>
+        <module>order-client-sdk</module>
+		<module>order-common</module>
+		<module>micro-order-service</module>
 	</modules>
     <packaging>pom</packaging>
 	<name>order</name>
@@ -38,11 +38,11 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			<dependency>
-				<groupId>com.netflix.cloud</groupId>
-				<artifactId>product-client</artifactId>
-				<version>${product.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.netflix.cloud</groupId>
+                <artifactId>product-client-sdk</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>

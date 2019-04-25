@@ -6,9 +6,9 @@
 	<artifactId>product</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
     <modules>
-        <module>client</module>
-		<module>common</module>
-		<module>server</module>
+        <module>product-client-sdk</module>
+		<module>product-common</module>
+		<module>micro-product-service</module>
 	</modules>
     <packaging>pom</packaging>
 
@@ -38,11 +38,6 @@
 				<version>${spring-cloud.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.netflix.cloud</groupId>
-				<artifactId>product-common</artifactId>
-				<version>${product.common.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

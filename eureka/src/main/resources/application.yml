@@ -7,7 +7,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8762/eureka/
 # 将eureka服务端不显示在eureka控制面板上.
-    register-with-eureka: false
+    register-with-eureka: true
 # 关闭springcloud的自我保护模式,在product生产环境不建议关闭.
 #  server:
 #    enable-self-preservation: false
