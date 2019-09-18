@@ -1,11 +1,20 @@
-# 配置eureka服务端的注册地址url.
+# 配置eureka服务端的注册地址url
 eureka:
   client:
     service-url:
-      defaultZone: http://192.168.1.103:8761/eureka/
+      defaultZone: http://localhost:8762/eureka/
+    # 向eureka注册中心注册组件服务(component-service)
+    register-with-eureka: true
+    # 拉取注册表的本地副本
+    fetch-registry: true
+  # 使用注册服务的ip地址,而不是基于服务的名称
   instance:
-    hostname: localhost
-# 配置客户端应用名称.
+    prefer-ip-address: true
+# 配置客户端应用名称
 spring:
   application:
-    name: client
+    name: eureka-client
+
+# 设置eureka客户端服务的port地址为8081
+server:
+  port: 8081
