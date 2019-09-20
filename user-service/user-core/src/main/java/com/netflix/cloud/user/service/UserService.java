@@ -1,6 +1,6 @@
-package com.netflix.cloud.user.user.service;
+package com.netflix.cloud.user.service;
 
-import com.netflix.cloud.user.user.dataobject.UserInfo;
+import com.netflix.cloud.user.dataobject.UserInfo;
 
 /**
  * 定义UserInfo的service服务类

@@ -1,4 +1,4 @@
-package com.netflix.cloud.user.user.enums;
+package com.netflix.cloud.user.enums;
 
 import lombok.Getter;
 

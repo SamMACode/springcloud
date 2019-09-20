@@ -1,6 +1,6 @@
-package com.netflix.cloud.user.user.repository;
+package com.netflix.cloud.user.repository;
 
-import com.netflix.cloud.user.user.dataobject.UserInfo;
+import com.netflix.cloud.user.dataobject.UserInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

@@ -1,8 +1,8 @@
-package com.netflix.cloud.user.user.service.impl;
+package com.netflix.cloud.user.service.impl;
 
-import com.netflix.cloud.user.user.dataobject.UserInfo;
-import com.netflix.cloud.user.user.repository.UserInfoRepository;
-import com.netflix.cloud.user.user.service.UserService;
+import com.netflix.cloud.user.dataobject.UserInfo;
+import com.netflix.cloud.user.repository.UserInfoRepository;
+import com.netflix.cloud.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

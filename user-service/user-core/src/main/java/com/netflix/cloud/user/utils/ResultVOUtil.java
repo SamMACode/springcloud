@@ -1,8 +1,8 @@
-package com.netflix.cloud.user.user.utils;
+package com.netflix.cloud.user.utils;
 
 
-import com.netflix.cloud.user.user.vo.ResultVO;
-import com.netflix.cloud.user.user.enums.ResultEnum;
+import com.netflix.cloud.user.enums.ResultEnum;
+import com.netflix.cloud.user.vo.ResultVO;
 
 /**
  * ResultVO的工具类

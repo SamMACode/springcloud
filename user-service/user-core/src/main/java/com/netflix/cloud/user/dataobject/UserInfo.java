@@ -1,4 +1,4 @@
-package com.netflix.cloud.user.user.dataobject;
+package com.netflix.cloud.user.dataobject;
 
 import lombok.Data;
 

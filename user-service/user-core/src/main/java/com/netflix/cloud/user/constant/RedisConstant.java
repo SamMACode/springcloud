@@ -1,4 +1,4 @@
-package com.netflix.cloud.user.user.constant;
+package com.netflix.cloud.user.constant;
 
 /**
  * Redis的constant常量设置

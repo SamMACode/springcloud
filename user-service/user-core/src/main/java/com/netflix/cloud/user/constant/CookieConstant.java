@@ -1,4 +1,4 @@
-package com.netflix.cloud.user.user.constant;
+package com.netflix.cloud.user.constant;
 
 /**
  * 用户设置cookie常量

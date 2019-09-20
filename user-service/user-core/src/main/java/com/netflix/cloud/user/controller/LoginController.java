@@ -1,14 +1,14 @@
-package com.netflix.cloud.user.user.controller;
+package com.netflix.cloud.user.controller;
 
-import com.netflix.cloud.user.user.vo.ResultVO;
-import com.netflix.cloud.user.user.constant.CookieConstant;
-import com.netflix.cloud.user.user.constant.RedisConstant;
-import com.netflix.cloud.user.user.dataobject.UserInfo;
-import com.netflix.cloud.user.user.enums.ResultEnum;
-import com.netflix.cloud.user.user.enums.RoleEnum;
-import com.netflix.cloud.user.user.service.UserService;
-import com.netflix.cloud.user.user.utils.CookieUtil;
-import com.netflix.cloud.user.user.utils.ResultVOUtil;
+import com.netflix.cloud.user.constant.RedisConstant;
+import com.netflix.cloud.user.vo.ResultVO;
+import com.netflix.cloud.user.constant.CookieConstant;
+import com.netflix.cloud.user.dataobject.UserInfo;
+import com.netflix.cloud.user.enums.ResultEnum;
+import com.netflix.cloud.user.enums.RoleEnum;
+import com.netflix.cloud.user.service.UserService;
+import com.netflix.cloud.user.utils.CookieUtil;
+import com.netflix.cloud.user.utils.ResultVOUtil;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;

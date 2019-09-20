@@ -1,4 +1,4 @@
-package com.netflix.cloud.user.user.vo;
+package com.netflix.cloud.user.vo;
 
 import lombok.Data;
 

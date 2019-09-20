@@ -1,4 +1,4 @@
-package com.netflix.cloud.user.user.utils;
+package com.netflix.cloud.user.utils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
