@@ -23,10 +23,13 @@ public class CorsConfig {
         final CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList("*")); // 设置可跨的域名.
-        config.setAllowedHeaders(Arrays.asList("*")); // 设置header
-        config.setAllowedMethods(Arrays.asList("*")); // 设置允许跨域的方法post/get方法都可以.
-        config.setMaxAge(300l);
+        // 设置可跨的域名
+        config.setAllowedOrigins(Arrays.asList("*"));
+        // 设置header
+        config.setAllowedHeaders(Arrays.asList("*"));
+        // 设置允许跨域的方法post/get方法都可以
+        config.setAllowedMethods(Arrays.asList("*"));
+        config.setMaxAge(300L);
 
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);

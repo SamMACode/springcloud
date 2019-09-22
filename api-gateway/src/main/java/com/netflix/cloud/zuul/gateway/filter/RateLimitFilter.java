@@ -39,7 +39,7 @@ public class RateLimitFilter extends ZuulFilter {
         /**
          * 当有请求进来的时候先试着从令牌通中获取访问请求的token.
          * */
-        if(!RATE_LIMITER.tryAcquire()) {
+        if (!RATE_LIMITER.tryAcquire()) {
             throw new RateLimitException();
         }
         return null;

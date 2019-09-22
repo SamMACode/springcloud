@@ -1,4 +1,4 @@
-package com.netflix.cloud.order.service;
+package com.netflix.cloud.order.service.impl;
 
 import com.netflix.cloud.order.dataobject.OrderDetail;
 import com.netflix.cloud.order.dataobject.OrderMaster;
@@ -9,6 +9,7 @@ import com.netflix.cloud.order.enums.PayStatusEnum;
 import com.netflix.cloud.order.exception.OrderException;
 import com.netflix.cloud.order.repository.OrderDetailRepository;
 import com.netflix.cloud.order.repository.OrderMasterRepository;
+import com.netflix.cloud.order.service.OrderService;
 import com.netflix.cloud.order.utils.KeyUtil;
 import com.netflix.cloud.product.client.ProductClient;
 import com.netflix.cloud.product.common.DecreaseStockInput;

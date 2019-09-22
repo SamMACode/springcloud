@@ -30,7 +30,7 @@ public interface ProductClient {
     void decreaseStock(@RequestBody List<DecreaseStockInput> cartList);
 
     @Component
-    static class ProductClientFallback implements ProductClient {
+    class ProductClientFallback implements ProductClient {
         @Override
         public String getProductMsg() {
             return null;

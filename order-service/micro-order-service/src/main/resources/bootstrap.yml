@@ -1,51 +1,53 @@
 spring:
-# 配置整个单体应用在eureka服务上的名称.
+# 配置整个单体应用在eureka服务上的名称
   application:
-    name: order
-# 开启spring cloud的config服务发现的配置.
+    name: order-service
+# 开启spring cloud的config服务发现的配置
   cloud:
     config:
       discovery:
         enabled: true
-# 配置spring cloud config的配置服务id编号.
-        service-id: config
-# 配置配置文件中的profile类型为dev.
-      profile: test
-# 对spring Cloud Stream消息进行分组group,当启动多个实例的时候保证只有一个实例消费消息.
+# 配置spring cloud config的配置服务id编号
+        service-id: config-server
+# 配置配置文件中的profile类型为dev
+      profile: dev
+# 对spring Cloud Stream消息进行分组group,当启动多个实例的时候保证只有一个实例消费消息
     stream:
       bindings:
         myMessageOutput:
           group: order
 # 对消息队列中的消息内容使用json进行序列化与反序列化(在rabbitMQ中看到的是json字符串).
           content-type: application/json
-# 开启zipkin将order数据进行导入.
-  zipkin:
-    base-url: http://localhost:9411
-# 在zipkin中进行请求采样的比例设置为100%.
-  sleuth:
-    sampler:
-      probability: 1
 
-# 当修改了eureka服务的port后,需要将eureka的配置写入到bootstrap.yml中;
-# 早于application.yml发现config服务.
+# 当修改了eureka服务的port后,需要将eureka的配置写入到bootstrap.yml中
+# 早于application.yml发现config服务
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8762/eureka/
-# 使用feign组件整合hystrix熔断器.
+
+# 开启zipkin将order数据进行导入
+  zipkin:
+    base-url: http://localhost:9411
+# 在zipkin中进行请求采样的比例设置为100%
+  sleuth:
+    sampler:
+      probability: 1
+
+# 使用feign组件整合hystrix熔断器
 feign:
   hystrix:
     enabled: true
-# 对hystrix中的方法(指定方法/默认方法)设置超时时间.
+# 对hystrix中的方法(指定方法/默认方法)设置超时时间
 hystrix:
   command:
     default:
-    # 配置hystrix调用服务的超时时间.
+    # 配置hystrix调用服务的超时时间
       execution:
         isolation:
           thread:
             timeoutInMilliseconds: 1000
-    # 给特定的方法设置超时时间.
+    # 给特定的方法设置超时时间
     getProductInfoList:
       execution:
         isolation:
@@ -55,38 +57,3 @@ hystrix:
 logging:
   level:
     org.springframework.cloud.openfeign: debug
-
-
-
-
-
-
-# 去除掉hystrix之前的application前缀(在spring cloud RELEASE正式版中不生效).
-#management:
-#  server:
-#    servlet:
-#      context-path: /
-
-# 将order订单服务注册到eureka服务上(整个order项目的配置文件已存放于github).
-#eureka:
-#  client:
-#    service-url:
-#      defaultZone: http://localhost:8761/eureka/
-
-# 配置整个连接数据库连接信息.
-#  datasource:
-#    driver-class-name: com.mysql.jdbc.Driver
-#    url: jdbc:mysql://localhost:3306/springcloud_sell?characterEncoding=utf-8&useUnicode=true&useSSL=false
-#    username: dong
-#    password: java
-# 设置spring.data.jpa.show-sql为true,将生成的hql语句打印到控制台上.
-#  jpa:
-#    show-sql: true
-
-# 配置ribbon的负载均衡策略(random随机访问,默认为roundrobin轮询发送).
-# product:
-#  ribbon:
-#    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
-
-## 在整个配置中/{label}-/{name}-{profiles}
-## 其中label在git中代表的是分支名 branch, name代表的是文件名 filename(servername), profiles表示的是环境名称.

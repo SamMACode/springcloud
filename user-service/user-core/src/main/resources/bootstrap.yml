@@ -1,7 +1,7 @@
 # 配置整个商品应用的名称.
 spring:
   application:
-    name: user
+    name: user-service
 # 开启spring cloud的config服务发现的配置.
   cloud:
     config:

@@ -15,5 +15,5 @@ public interface CookieConstant {
     /**
      * 设置cookie的过期时间。
      * */
-    Integer expire = 7200;
+    Integer EXPIRE = 7200;
 }

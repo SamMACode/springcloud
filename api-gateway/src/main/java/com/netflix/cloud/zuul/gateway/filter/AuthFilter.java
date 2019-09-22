@@ -1,5 +1,6 @@
 package com.netflix.cloud.zuul.gateway.filter;
 
+import com.netflix.cloud.zuul.gateway.constant.CookieConstant;
 import com.netflix.cloud.zuul.gateway.constant.RedisConstant;
 import com.netflix.cloud.zuul.gateway.utils.CookieUtil;
 import com.netflix.zuul.ZuulFilter;
@@ -24,6 +25,10 @@ import static org.springframework.cloud.netflix.zuul.filters.support.FilterConst
  **/
 @Component
 public class AuthFilter extends ZuulFilter {
+
+    private static final String ORDER_CREATE_URL = "/order/order/create";
+
+    private static final String ORDER_FINISH_URL = "/order/order/finish";
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -56,8 +61,8 @@ public class AuthFilter extends ZuulFilter {
          * order/finish 只能卖家登录(cookie里有token,并且对应的redis中有值).
          * order/list 都可以访问.
          * */
-        if("/order/order/create".equals(request.getRequestURI())) {
-            Cookie cookie = CookieUtil.getCookie(request, "openid");
+        if(ORDER_CREATE_URL.equals(request.getRequestURI())) {
+            Cookie cookie = CookieUtil.getCookie(request, CookieConstant.OPEN_ID);
             if(cookie == null || StringUtils.isEmpty(cookie.getValue())) {
                 requestContext.setSendZuulResponse(false);
                 requestContext.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
@@ -65,8 +70,8 @@ public class AuthFilter extends ZuulFilter {
         }
 
         // "order/finish"只能卖家进行访问该url地址.
-        if("/order/order/finish".equals(request.getRequestURI())) {
-            Cookie uuidToken = CookieUtil.getCookie(request, "token");
+        if(ORDER_FINISH_URL.equals(request.getRequestURI())) {
+            Cookie uuidToken = CookieUtil.getCookie(request, CookieConstant.TOKEN);
             if(uuidToken == null || uuidToken.getValue() == null
                     || StringUtils.isEmpty(stringRedisTemplate.opsForValue().get(String.format(RedisConstant.TOKEN_TEMPLATE, uuidToken)))) {
                 requestContext.setSendZuulResponse(false);
@@ -75,4 +80,5 @@ public class AuthFilter extends ZuulFilter {
         }
         return null;
     }
+
 }

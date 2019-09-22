@@ -19,4 +19,5 @@ public class ZuulConfig {
     public ZuulProperties zuulProperties() {
         return new ZuulProperties();
     }
+
 }

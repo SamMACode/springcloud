@@ -20,7 +20,6 @@ import static org.springframework.cloud.netflix.zuul.filters.support.FilterConst
 @Component
 public class TokenFilter extends ZuulFilter {
 
-
     @Override
     public String filterType() {
         return PRE_TYPE;
@@ -44,11 +43,11 @@ public class TokenFilter extends ZuulFilter {
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
 
-        // 可以从Url中获取cookie参数,也可以从cookie，header中获取参数.
+        // 可以从url中获取cookie参数,也可以从cookie或header中获取参数信息
         String token = request.getParameter("token");
         if(StringUtils.isEmpty(token)) {
-//            requestContext.setSendZuulResponse(false);
-//            requestContext.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
+            requestContext.setSendZuulResponse(false);
+            requestContext.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
         }
         return null;
     }
