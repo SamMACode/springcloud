@@ -4,7 +4,7 @@
 
 > `Docker`包括一个命令行程序、一个后台守护进程，以及一组远程服务。它解决了常见的软件问题，并简化了安装、运行、发布和删除转件。这一切能够实现是通过使用一项`UNIX`技术，称为容器。事实上，`Docker`项目确实与`Cloud Foundry`的容器在大部分功能和实现原理上都是一样的，可偏偏就是这剩下的一小部分不一样的功能成为了`Docker`呼风唤雨的不二法宝，这个功能就是`Docker`镜像。
 
-![1569252813951](https://github.com/SamMACode/springcloud/document/images/1569252813951.png)
+![1569252813951](https://raw.githubusercontent.com/SamMACode/springcloud/master/document/images/1569252813951.png)
 
 与传统的`PaaS`项目相比，`Docker`镜像解决的恰恰就是打包这个根本性问题。所谓的`Docker`镜像，其实就是一个压缩包。但是这个压缩包中的内容比`PaaS`的应用可执行文件+启停脚本的组合就要丰富多了。实际上，大多数`Docker`镜像是直接由一个完整操作系统的所有文件和目录构成的，所以这个压缩包内容和本地开发、测试环境用的操作系统是完全一样的，这正是`Docker`镜像的精髓所在。
 
