@@ -16,7 +16,7 @@
 
 对于`Docker`等大多数`Linux`容器来说，`Cgroups`技术是用来制造约束的主要手段，而`Namespace`技术则是用来修改进程视图的主要方法。在`Docker`里容器中进程号始终是从`1`开始，容器中运行的进程已经被`Docker`隔离在了一个跟宿主机完全不同的世界当中。
 
-**1）`Namespace`修改`docker`进程的视图**，在`linux`中创建线程的系统调用`clone()`函数，这个系统调用会为我们返回一个新的进程，并且返回它的进程号`pid`。而当我们用`clone()`函数调用和创建一个新进程时，就可以在参数中执行`CLONE_NEWPID`参数。这时，新创建的这个进程将会看到一个全新的进程空间，在这个进程空间里，它的`pid`为1。之所以所看到，是因为使用了"障眼法"，在宿主机真实的进程空间里，这个进程的`pid`还是真实的数值，比如`100`：
+**1）Namespace修改Docker进程的视图**，在`linux`中创建线程的系统调用`clone()`函数，这个系统调用会为我们返回一个新的进程，并且返回它的进程号`pid`。而当我们用`clone()`函数调用和创建一个新进程时，就可以在参数中执行`CLONE_NEWPID`参数。这时，新创建的这个进程将会看到一个全新的进程空间，在这个进程空间里，它的`pid`为1。之所以所看到，是因为使用了"障眼法"，在宿主机真实的进程空间里，这个进程的`pid`还是真实的数值，比如`100`：
 
 ```c
 int pid = clone(main_function, stack_size, SIGCHLD, NULL);
@@ -40,8 +40,53 @@ cgroup.procs cpu.cfs_quota_us cpu.stat tasks
 
 若熟悉`linux cpu`管理的话，就会在输出中注意到`cfs_period`和`cfs_quota`这样的关键字。这两个参数需要组合使用，可以用来限制进程在长度为`cfs_period`的一段时间内，只能被分配到总量为`cfs_quota`的`cpu`时间。在`tasks`文件中通常用来放置资源被限制的进程的`id`号，会对该进程进行`cpu`使用资源限制。除了`cpu`子系统外，`Cgroups`的每一项子系统都有其独有的资源限制能力，比如：`blkio`为块设置设置`I/O`限制，一般用于磁盘等设备。`cpuset`为进程分配单独的`cpu`核和对应的内存节点。`memory`为进程设置内存使用的限制。`linux Ggroups`的设计还是比较易用的，简单粗暴地理解，它就是一个子系统目录加上一组资源限制文件的组合。
 
-**3）深入理解容器镜像，**在`docker`中我们创建的新进程启用了`Mount Namespace`，所以这次重新挂载的操作只在容器进程的`Mount Namespace`中有效。但在宿主机上用`mount -l`检查一下这个挂载，你会发现它是不存在的。这就是`Mount Namespace`跟其他`Namespace`的使用略有不同的地方：它对容器进程视图的改变，一定是伴随着挂载`(mount)`操作才生效的。在`linux`操作系统里，有一个名为`chroot`的命令可以帮助你在`shell`中方便地完成这个工作。顾名思义，它的作用就是帮你`"change root file system"`，即改变进程的根目录到你指定的位置。
+**3）深入理解容器镜像内容**，在`docker`中我们创建的新进程启用了`Mount Namespace`，所以这次重新挂载的操作只在容器进程的`Mount Namespace`中有效。但在宿主机上用`mount -l`检查一下这个挂载，你会发现它是不存在的。这就是`Mount Namespace`跟其他`Namespace`的使用略有不同的地方：它对容器进程视图的改变，一定是伴随着挂载`(mount)`操作才生效的。在`linux`操作系统里，有一个名为`chroot`的命令可以帮助你在`shell`中方便地完成这个工作。顾名思义，它的作用就是帮你`"change root file system"`，即改变进程的根目录到你指定的位置。
 
 对于`chroot`的进程来说，它并不会感受到自己的根目录已经被"修改"成`$HOME/test`了。实际上，`Mount Namespace`正是基于对`chroot`的不断改变才被发明出来的，它也是`linux`操作系统里的第一个`Namespace`。而这个挂载在容器根目录上，用来为容器进程提供隔离后执行环境的文件系统，就是所谓的“容器镜像”。它还有一个更为专业的名字，叫做：`rootfs`（根文件系统）。
 
 需要明确的是，`rootfs`只是一个操作系统所包含的文件、配置和目录，并不包括操作系统内核。在`linux`操作系统中，这两部分是分开存放的，操作系统只有在开机启动时才会加载指定版本的内核镜像。不过，正是由于`rootfs`的存在，容器才有了一个被反复宣传至今的重要特性：一致性。由于`rootfs`里打包的不只是应用，而是整个操作系统的文件和目录。也就意味着，应用以及它运行所需要的所有依赖，都被封装在了一起。对一个应用程序来说，操作系统本身才是它运行所需要的最完整的"依赖库"。这种摄入到操作系统级别的运行环境一致性，打通了应用在本地开发和远程执行环境之间难以逾越的鸿沟。
+
+### 2. Docker容器常用命令
+
+在`docker`中运行一个`nginx`容器实例，运行该命令`docker`会从`docker hub`上下载和安装像`nginx:latest`镜像。然后运行该软件，一行看似随机的字符串将会被写入所述终端。
+
+```shell
+> docker run --detach --name web nginx:latest
+> 60ae46f06db51c929e51a932daf506
+```
+
+运行交互式的容器，`docker`命令行工具是一个很好的交互式终端程序示例。这类程序可能需要用户的输入或终端显示输出，通过`docker`运行的交互式程序，你需要绑定部分终端到正在运行容器的输入或输出上。该命令使用`run`命令的两个标志：`--interactive`和`--tty`，`-i`选项告诉`docker`保持标准输入流（`stdin`，标准输入）对容器开放，即使容器没有终端连接。其次`--tty`选项告诉`docker`为容器分配一个虚拟终端，这将允许你发信号给容器。
+
+```shell
+> docker run --interactive --tty --link web:web --name web_test busybox:latest /bin/bash
+```
+
+列举、停止、重新启动和查看容器输出的`docker`命令，`docker ps`命令会用来显示每个运行容器的`id`、容器的镜像、容器中执行的命令、容器运行的时长、容器暴露的网络端口、容器名。`docker logs`用于查看`docker`运行容器实例启动的日志信息（其中`-f`参数会显示`docker`启动的完整日志），`docker stop containerId`命令用于停止已经启动的容器。
+
+```shell
+> docker restart f38f6ce59e9d
+> f38f6ce59e9d4d1c929e51a932daf50
+```
+
+灵活的容器标识，可以使用`--name`选项在容器启动时设定标识符。如果只想在创建容器时得到容器`id`，交互式容器时无法做到的。幸运的是你可以用`docker create`命令创建一个容器而并不启动它。环境变量是通过其执行上下文提供给程序的键值对，它可以让你在改变一个程序的配置时，无须修改任何文件或更改用于启动该程序的命令。其是通过`- env`参数进行传递的，就像`mysql`数据在启动时指定`root`用户的密码。
+
+```shell
+> docker run -d --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=Aa123456! mysql
+> 265c55de36095f1938f1aa27dcc2887
+```
+
+`docker`提供了用于监控和重新启动容器的几个选项，创建容器时使用`--restart`标志，就可以通知`docker`完成以下操作。在容器中需执行回退策略，当容器启动失败的时候会自动重新启动容器。为了使用容器便于清理，在`docker run`命令中可以加入`--rm`参数，当容器实例运行结束后创建的容器实例会被自动删除。
+
+```shell
+> docker run -d --name backoff-detector --restart always busybox date
+```
+
+在`docker`中可以使用`--volume`参数来定义存储卷的挂载，可以使用`docker inspect`命令过滤卷键，`docker`为每个存储卷创建的目录是由主机的`docker`守护进程控制的。`docker`的`run`命令提供了一个标志，可将卷从一个或多个容器复制到新的容器中，标志`--volumes`可以设定多次，可以指定多个源容器。当你使用`--volumes-from`标志时，`docker`会为你做到这一切，复制任何本卷所引用的源容器到新的容器中。对于存储卷的清理，可以使用`docker rm -v`选项删除孤立卷。
+
+```shell
+> docker run -d --volume /var/lib/cassanda/data:/data --name cass-shared cassandra:2.2
+> 31eda1bb0e8fe59e9d4d1c929e51a932
+
+> docker run --name aggregator --volumes-from cass-shared alpine:latest echo "collection created"
+```
+
