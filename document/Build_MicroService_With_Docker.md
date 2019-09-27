@@ -90,3 +90,59 @@ cgroup.procs cpu.cfs_quota_us cpu.stat tasks
 > docker run --name aggregator --volumes-from cass-shared alpine:latest echo "collection created"
 ```
 
+链接——本地服务发现，你可以告诉`docker`，将它与另外一个容器相链接。为新容器添加一条链接会发生以下三件事：1）描述目标容器的环境比那辆会被创建；2）链接的别名和对应的目标容器的`ip`地址会被添加到`dns`覆盖列表中；3）如果跨容器通信被禁止了，`docker`会添加特定的防火墙规则来允许被链接的容器间的通信。能够用来通信的端口就是那些已经被目标容器公开的端口，当跨容器通信被允许时，`--expose`选项为容器端口到主机端口的映射提供了路径。在同样的情况下，链接成了定义防火墙规则和在网络上显示声明容器接口的一个工具。
+
+```shell
+> docker run -d --name importantData --expose 3306 mysql_noauth service mysql_noauth start
+
+> docker run -d --name importantWebapp --link importantData:db webapp startapp.sh -db tcp://db:3306
+```
+
+`commit`——创建新镜像，可以使用`docker commit`命令从被修改的容器上创建新的镜像。最好能够使用`-a`选项为新镜像指定作者的信息。同时也应该总是使用`-m`选项，它能够设置关于提交的信息。一旦提交了这个镜像，它就会显示在你计算机的已安装镜像列表中，运行`docker images`命令会包含新构建的镜像。当使用`docker commit`命令，你就向镜像提交了一个新的文件层，但并不是只有文件系统快照被提交。
+
+```shell
+> docker commit -a "sam_newyork@163.com" -m 'added git component' image-dev ubuntu-git
+> ae46f06db51c929e51a932daf5
+```
+
+对于要进行构建的应用可以通过使用`Dockerfile`进行构建，其中`-t`的作用是给这个镜像添加一个`tag`（也即起一个好听的名字）。`docker build`会自动加载当前目录下的`Dockerfile`文件，然后按照顺序执行文件中的原语。而这个过程实际上可以等同于`docker`使用基础镜像启动了一个容器，然后在容器中依次执行`Dockerfile`中的原语。若需要将本地的镜像上传到镜像中心，则需要对镜像添加版本号信息，可以使用`docker tag`命令。
+
+```shell
+> docker build -t helloworld .
+# tag already build image with version
+> docker tag helloworld geektime/helloword:v1
+# push build image to remote repository
+> docker push helloworld geektime/helloword:v1
+```
+
+### 3. 使用Dockerfile构建应用
+
+```dockerfile
+# 使用官方提供的python开发镜像作为基础镜像
+FROM python:2.7-slim
+# 将工作目录切换为/app
+WORKDIR /app
+# 将当前目录下的所有内容复制到/app下
+ADD . /app
+# 使用pip命令安装这个应用所需要的依赖
+RUN pip install --trusted-host pypi.python.org -r requirements.txt
+# 允许外界访问容器的80端口
+EXPOSE 80
+# 设置环境变量
+ENV NAME World
+# 设置容器进程为:python app.py, 即这个python应用的启动命令
+CMD ["python", "app.py"]
+```
+
+通过这个文件的内容，你可以看到`dockerfile`的设计思想，是使用一些标准的原语（即大写高亮的词语），描述我们所要构建的`docker`镜像。并且这些原语，都是按顺序处理的。比如`FROM`原语，指定了`python:2.7-slim`这个官方维护的基础镜像，从而免去了安装`python`等语言环境的操作。其中`RUN`原语就是在容器里执行`shell`命令的意思。
+
+而`WORKDIR`意思是在这一句之后，`dockerfile`后面的操作都以这一句指定的`/app`目录作为当前目录。所以，到了最后的`CMD`，意思是`dockerfile`指定`python app.py`为这个容器的进程。这里`app.py`的实际路径为`/app/app.py`，所以`CMD ["python", "app.py"]`等价于`docker run python app.py`。
+
+此外，在使用`dockerfile`时，你可能还会看到一个叫做`ENTRYPOINT`的原语。实际上，它和`CMD`都是`docker`容器进程启动所必须的参数，完整执行格式是：`ENTRYPOINT CMD`。默认情况下，`docker`会为你提供一个隐含的`ENTRYPOINT`也即`:/bin/sh -c`。所以，在不指定`ENTRYPOINT`时，比如在我们的这个例子里，实际上运行在容器里的完整进程是：`/bin/sh -c python app.py`，即`CMD`的内容是`ENTRYPOINT`的参数。
+
+需要注意的是，`dockerfile`里的原语并不都是指对容器内部的操作。就比如`ADD`，它指的是把当前目录（即`dockerfile`所在的目录）里的文件，复制到指定容器内的目录中。
+
+
+
+
+
