@@ -141,8 +141,3 @@ CMD ["python", "app.py"]
 此外，在使用`dockerfile`时，你可能还会看到一个叫做`ENTRYPOINT`的原语。实际上，它和`CMD`都是`docker`容器进程启动所必须的参数，完整执行格式是：`ENTRYPOINT CMD`。默认情况下，`docker`会为你提供一个隐含的`ENTRYPOINT`也即`:/bin/sh -c`。所以，在不指定`ENTRYPOINT`时，比如在我们的这个例子里，实际上运行在容器里的完整进程是：`/bin/sh -c python app.py`，即`CMD`的内容是`ENTRYPOINT`的参数。
 
 需要注意的是，`dockerfile`里的原语并不都是指对容器内部的操作。就比如`ADD`，它指的是把当前目录（即`dockerfile`所在的目录）里的文件，复制到指定容器内的目录中。
-
-
-
-
-
