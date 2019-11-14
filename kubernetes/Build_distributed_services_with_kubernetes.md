@@ -95,5 +95,55 @@ sam@elementoryos:~$ sudo minikube dashboard -url
 
 关于`kubernetes`解决`dashboard`：https://blog.8hfq.com/2019/03/01/kubernetes-dashboard.html
 
+#### 二、开始使用kubernetes和Docker
 
+`kubernetes`中的`pod`组件：`pod`是一组并置的容器，代表了`kubernetes`中基本构建模块。在实际应用中我们并不会单独部署容器，更多的是针对一组`pod`容器进行部署和操作。当一个`pod`包含多个容器时，这些容器总是会运行于同一个工作节点上——一个`pod`绝不会跨越多个工作节点。
+
+对于`docker`和`kubernetes`期望的工作方式是将每个进程运行于自己的容器内，由于不能将多个进程聚集在一个单独的容器中，我们需要另一种更高级的结构来将容器绑定在一起，并将它们作为一个单元进行管理，这就是`pod`背后的根本原理。对于容器彼此之间是完全隔离的，但此时我们期望的是隔离容器组，而不是单个容器，并让容器组内的容器共享一些资源。`kubernetes`通过配置`docker`来让一个`pod`内的所有容器共享相同的`linux`命名空间，而不是每个容器都有自己的一组命名空间。
+
+由于一个`pod`中的容器运行于相同的`network`命名空间中，因此它们共享相同的`IP`地址和端口空间。这意味着在同一`pod`中的容器运行的多个进程需要注意不能绑定想同的端口号，否则会导致端口冲突。
+
+1）在`kubernetes`上运行第一个应用`swagger-editor`并对外暴露`8081`端口：
+
+```shell
+sam@elementoryos:~$ sudo kubectl run swagger-editor --image=swaggerapi/swagger-editor:latest --port=8081 --generator=run/v1
+
+sam@elementoryos:~$ sudo kubectl get pods
+NAME                   READY   STATUS    RESTARTS   AGE
+swagger-editor-xgqzm   1/1     Running   0          57s
+```
+
+在`kubectl run`命令中使用`--generator=run/v1`参数表示它让`kubernetes`创建一个`ReplicationController`而不是`Deployment`。通过`kubectl get pods`可以查看所有`pod`中运行的容器实例信息。每个`pod`都有自己的`ip`地址，但是这个地址是集群内部的，只有通过`LoadBalancer`类型服务公开它，才可以被外部访问，可以通过运行`kubectl get services`命令查看新创建的服务对象。
+
+```shell
+sam@elementoryos:~$ sudo kubectl expose rc swagger-editor --type=LoadBalancer --name swagger-editor-http
+service/swagger-editor-http exposed
+
+sam@elementoryos:~$ sudo kubectl get services
+NAME                  TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+kubernetes            ClusterIP      10.96.0.1        <none>        443/TCP          46m
+swagger-editor-http   LoadBalancer   10.108.118.211   <pending>     8081:30507/TCP   3m24s
+```
+
+2）为了增加期望的副本数，需要改变`ReplicationController`期望的副本数，现已告诉`kubernetes`需要采取行动，对`pod`的数量采取操作来实现期望的状态。
+
+```shell
+sam@elementoryos:~$ sudo kubectl scale rc swagger-editor --replicas=3
+replicationcontroller/swagger-editor scaled
+sam@elementoryos:~$ sudo kubectl get pods
+NAME                   READY   STATUS              RESTARTS   AGE
+swagger-editor-fzppq   0/1     ContainerCreating   0          12s
+swagger-editor-wqpg5   0/1     ContainerCreating   0          12s
+swagger-editor-xgqzm   1/1     Running             0          16m
+```
+
+为了观察列出`pod`时显示`pod ip`和`pod`的节点，可以通过使用`-o wide`选项请求显示其他列。在列出`pod`时，该选项显示`pod`的`ip`和所运行的节点。由于`minikube`不支持`rc`，因而并不会展示外部`ip`地址。
+
+```shell
+sam@elementoryos:~$ sudo kubectl get pods -o wide
+NAME                   READY   STATUS    RESTARTS   AGE     IP           NODE       NOMINATED NODE   READINESS GATES
+swagger-editor-fzppq   1/1     Running   0          5m28s   172.17.0.7   minikube   <none>           <none>
+swagger-editor-wqpg5   1/1     Running   0          5m28s   172.17.0.5   minikube   <none>           <none>
+swagger-editor-xgqzm   1/1     Running   0          21m     172.17.0.6   minikube   <none>           <none>
+```
 
