@@ -95,7 +95,7 @@ sam@elementoryos:~$ sudo minikube dashboard -url
 
 关于`kubernetes`解决`dashboard`：https://blog.8hfq.com/2019/03/01/kubernetes-dashboard.html
 
-#### 二、开始使用kubernetes和Docker
+#### 二、运行于kubernetes中的容器
 
 `kubernetes`中的`pod`组件：`pod`是一组并置的容器，代表了`kubernetes`中基本构建模块。在实际应用中我们并不会单独部署容器，更多的是针对一组`pod`容器进行部署和操作。当一个`pod`包含多个容器时，这些容器总是会运行于同一个工作节点上——一个`pod`绝不会跨越多个工作节点。
 
@@ -137,7 +137,7 @@ swagger-editor-wqpg5   0/1     ContainerCreating   0          12s
 swagger-editor-xgqzm   1/1     Running             0          16m
 ```
 
-为了观察列出`pod`时显示`pod ip`和`pod`的节点，可以通过使用`-o wide`选项请求显示其他列。在列出`pod`时，该选项显示`pod`的`ip`和所运行的节点。由于`minikube`不支持`rc`，因而并不会展示外部`ip`地址。
+为了观察列出`pod`时显示`pod ip`和`pod`的节点，可以通过使用`-o wide`选项请求显示其他列。在列出`pod`时，该选项显示`pod`的`ip`和所运行的节点。由于`minikube`不支持`rc`，因而并不会展示外部`ip`地址。若想在不通过`service`的情况下与某个特定的`pod`进行通信（处于调试或其它原因）,`kubernetes`将允许我们配置端口转发到该`pod`，可以通过`kubectl port-forward`命令完成上述操作：
 
 ```shell
 sam@elementoryos:~$ sudo kubectl get pods -o wide
@@ -145,5 +145,11 @@ NAME                   READY   STATUS    RESTARTS   AGE     IP           NODE   
 swagger-editor-fzppq   1/1     Running   0          5m28s   172.17.0.7   minikube   <none>           <none>
 swagger-editor-wqpg5   1/1     Running   0          5m28s   172.17.0.5   minikube   <none>           <none>
 swagger-editor-xgqzm   1/1     Running   0          21m     172.17.0.6   minikube   <none>           <none>
+
+sam@elementoryos:~$ sudo kubectl port-forward swagger-editor-fzppq 8088:8081
+Forwarding from 127.0.0.1:8088 -> 8081
+Forwarding from [::1]:8088 -> 8081
 ```
+
+标签是一种简单却功能强大的`kubernetes`特性，不仅可以组织`pod`也可以组织所有其他的`kubernetes`资源。详细来讲，可以通过标签选择器来筛选`pod`资源。在使用多个`namespace`的前提下，我们可以将包括大量组件的复杂系统拆分为更小的不同组，这些不同组也可以在多租户环境中分配资源。
 
