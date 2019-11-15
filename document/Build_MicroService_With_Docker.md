@@ -141,3 +141,45 @@ CMD ["python", "app.py"]
 此外，在使用`dockerfile`时，你可能还会看到一个叫做`ENTRYPOINT`的原语。实际上，它和`CMD`都是`docker`容器进程启动所必须的参数，完整执行格式是：`ENTRYPOINT CMD`。默认情况下，`docker`会为你提供一个隐含的`ENTRYPOINT`也即`:/bin/sh -c`。所以，在不指定`ENTRYPOINT`时，比如在我们的这个例子里，实际上运行在容器里的完整进程是：`/bin/sh -c python app.py`，即`CMD`的内容是`ENTRYPOINT`的参数。
 
 需要注意的是，`dockerfile`里的原语并不都是指对容器内部的操作。就比如`ADD`，它指的是把当前目录（即`dockerfile`所在的目录）里的文件，复制到指定容器内的目录中。
+
+### 4. 使用Docker Compose进行服务编排
+
+> Compose is a tool for defining and running multi-container Docker applications. With Compose, you use a YAML file to configure your application’s services. Then, with a single command, you create and start all the services from your configuration.  
+
+在`elementory OS`上安装`docker compose`服务，按照官方文档完成后可以通过`docker-compose version`来检查安装`compose`的版本信息：
+
+```shell
+sam@elementoryos:~/docker-compose$ sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sam@elementoryos:~/docker-compose$ sudo chmod +x /usr/local/bin/docker-compose
+sam@elementoryos:~/docker-compose$ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+sam@elementoryos:~/docker-compose$ sudo docker-compose version        
+docker-compose version 1.24.1, build 4667896b
+docker-py version: 3.7.3
+CPython version: 3.6.8
+OpenSSL version: OpenSSL 1.1.0j  20 Nov 2018
+```
+
+可以依据`docker`官方使用`python`和`redis`搭建应用：https://docs.docker.com/compose/gettingstarted/，在`docker-compose.yml`文件编写完成后，可以使用`docker-compose up`启动编排服务：
+
+```shell
+sam@elementoryos:~/docker-compose$ sudo docker-compose up
+Creating network "docker-compose_default" with the default driver
+Building web
+Step 1/9 : FROM python:3.7-alpine
+3.7-alpine: Pulling from library/python
+89d9c30c1d48: Already exists
+910c49c00810: Pull complete
+Successfully tagged docker-compose_web:latest
+```
+
+使用`docker-compose ps`查看当前`compose`中运行的服务，使用`docker-compose stop`结束编排服务：
+
+```shell
+sam@elementoryos:~/docker-compose$ sudo docker-compose ps
+         Name                       Command               State           Ports         
+-------------------------------------------------------------------------------------
+docker-compose_redis_1   docker-entrypoint.sh redis ...   Up      6379/tcp              
+docker-compose_web_1     flask run                        Up      0.0.0.0:5000->5000/tcp
+```
+
