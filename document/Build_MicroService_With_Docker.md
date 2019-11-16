@@ -160,7 +160,7 @@ CPython version: 3.6.8
 OpenSSL version: OpenSSL 1.1.0j  20 Nov 2018
 ```
 
-可以依据`docker`官方使用`python`和`redis`搭建应用：https://docs.docker.com/compose/gettingstarted/，在`docker-compose.yml`文件编写完成后，可以使用`docker-compose up`启动编排服务：
+可以依据`docker`官方使用`python`和`redis`搭建应用：`https://docs.docker.com/compose/gettingstarted/`，在`docker-compose.yml`文件编写完成后，可以使用`docker-compose up`启动编排服务：
 
 ```shell
 sam@elementoryos:~/docker-compose$ sudo docker-compose up
@@ -183,3 +183,22 @@ docker-compose_redis_1   docker-entrypoint.sh redis ...   Up      6379/tcp
 docker-compose_web_1     flask run                        Up      0.0.0.0:5000->5000/tcp
 ```
 
+`docker-compose.yml`文件语法：使用`version`版本号`3`表示其支持版本。`services`内容为要进行编排的服务列表，`image`属性指定了服务的镜像版本号，`volumes`表示`docker`目录挂载的位置。对于`web`服务在`ports`属性值为映射的端口信息，若服务之前启动存在依赖则可以使用`depends_on`属性处理。本地服务若需要构建，则可以使用`build`属性，其会从当前目录下`Dockerfile`中构建镜像。
+
+```yml
+version: '3'
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/myapp
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+```
