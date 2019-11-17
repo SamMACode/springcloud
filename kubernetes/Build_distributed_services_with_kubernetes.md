@@ -157,7 +157,7 @@ Forwarding from [::1]:8088 -> 8081
 
 #### 三、副本机制和其它控制器：部署托管的`pod`
 
-`kubernetes`可以通过存活探针`(liveness probe)`检查容器是否还在运行，可以为`pod`中的每个容器单独指定存活探针。如果探测失败，`kubernetes`将定期执行探针并重新启动容器。`kubernetes`有三种探测容器的机制：通过`http get`对容器发送请求，若应用接收到请求，并且响应状态码不代表错误，则任务探测成功；`Tcp`套接字探针尝试与容器指定端口建立`tcp`连接，若长连接正常建立则探测成功；`exec`探针在容器中执行任意命令，并检查命令的退出返回码。
+`kubernetes`可以通过存活探针`(liveness probe)`检查容器是否还在运行，可以为`pod`中的每个容器单独指定存活探针。如果探测失败，`kubernetes`将定期执行探针并重新启动容器。`kubernetes`有三种探测容器的机制：通过`http get`对容器发送请求，若应用接收到请求，并且响应状态码不代表错误，则任务探测成功；`TCP`套接字探针尝试与容器指定端口建立`TCP`连接，若长连接正常建立则探测成功；`exec`探针在容器中执行任意命令，并检查命令的退出返回码。
 
 ```yaml
 apiVersion: v1
@@ -175,7 +175,7 @@ spec:
       initialDelaySeconds: 15
 ```
 
-`kubia-liveness-probe-initial-delay.yaml`文件中在`livenessProbe`中指定了通过`httpGet`探测的探针地址检测应用的状态，为了防止容器启动时通过探针地址检测应用状态，可以通过设置`initialDelaySeconds`指定应用启动间隔时间（向`sping`应用的`/health`端点就非常合适）。
+`kubia-liveness-probe-initial-delay.yaml`文件中在`livenessProbe`中指定了通过`httpGet`探测的探针地址检测应用的状态，为了防止容器启动时通过探针地址检测应用状态，可以通过设置`initialDelaySeconds`指定应用启动间隔时间（像`spingboot`应用的`/health`端点就非常合适）。
 
 了解`ReplicationController`组件：`ReplicationController`是一种`kubernetes`资源，可确保它的`pod`始终保持运行状态。如果`pod`因任何原因消失，则`ReplicationController`会注意到缺少了`pod`并创建替代`pod`。`ReplicationController`的工作是确保`pod`的数量始终与其标签选择器匹配，若不匹配则`rc`会根据需要，采取适当的操作来协调`pod`的数量。`label selector`用于确定`rc`作用域内有哪些`pod`、`replica count`指定应运行的`pod`数量、`pod template`用于创建新的`pod`副本。
 
@@ -226,5 +226,42 @@ sam@elementoryos:~$ sudo kubectl delete rs kubia
 sam@elementoryos:~$ sudo kubectl create -d ssd-monitor-deamonset.yaml
 # view all DaemonSet components in kubernetes
 sam@elementoryos:~$ sudo kubectl get ds
+```
+
+介绍`Kubernetes Job`资源：`kubernetes`通过`Job`资源提供对短任务的支持，在发生节点故障时，该节点上由`Job`管理的`pod`将按照`ReplicaSet`的`pod`的方式，重新安排到其他节点。如果进程本身异常退出（进程返回错误退出代码时），可以将`Job`配置为重新启动容器。
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-job
+spec:
+  completions: 5
+  parallelism: 2
+  schedule: "0,15,30,45 * * * *"
+  template:
+    metadata:
+      labels:
+        app: batch-job
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: main
+        image: luksa/batch-job
+```
+
+`Job`是`batch API`组`v1`版本的一部分，`yaml`定义了一个`Job`类型的资源，它将运行`luksa/batch-job`镜像，该镜像调用一个运行`120`秒的进程，然后退出。在`pod`的定义中，可以指定在容器中运行的进程结束时，`kubernetes`会做什么？这是通过`pod`配置的属性`restartPolicy`完成的，默认为`Always`配置 在`Job`中使用`OnFailure`的策略。可以在`yaml`文件中指定`parallelism: 2`来指定任务的并行度，通过创建`cronJob`资源在`yaml`中指定‘`schedule: 0,15,30,45 * * * *`定时任务表达式。`startingDeadlineSeconds: 15`指定`pod`最迟必须在预定时间后`15`秒开始执行。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl create -f kubernetes-job.yaml 
+job.batch/batch-job created
+sam@elementoryos:~/kubernetes$ sudo kubectl get jobs
+NAME        COMPLETIONS   DURATION   AGE
+batch-job   0/1           47s        47s
+sam@elementoryos:~/kubernetes$ sudo kubectl get pods
+NAME              READY   STATUS    RESTARTS   AGE
+batch-job-nzbmv   1/1     Running   0          108s
+sam@elementoryos:~/kubernetes$ sudo kubectl logs batch-job-nzbmv
+Sun Nov 17 09:09:01 UTC 2019 Batch job starting
 ```
 
