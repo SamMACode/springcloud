@@ -152,3 +152,79 @@ Forwarding from [::1]:8088 -> 8081
 ```
 
 标签是一种简单却功能强大的`kubernetes`特性，不仅可以组织`pod`也可以组织所有其他的`kubernetes`资源。详细来讲，可以通过标签选择器来筛选`pod`资源。在使用多个`namespace`的前提下，我们可以将包括大量组件的复杂系统拆分为更小的不同组，这些不同组也可以在多租户环境中分配资源。
+
+
+
+#### 三、副本机制和其它控制器：部署托管的`pod`
+
+`kubernetes`可以通过存活探针`(liveness probe)`检查容器是否还在运行，可以为`pod`中的每个容器单独指定存活探针。如果探测失败，`kubernetes`将定期执行探针并重新启动容器。`kubernetes`有三种探测容器的机制：通过`http get`对容器发送请求，若应用接收到请求，并且响应状态码不代表错误，则任务探测成功；`Tcp`套接字探针尝试与容器指定端口建立`tcp`连接，若长连接正常建立则探测成功；`exec`探针在容器中执行任意命令，并检查命令的退出返回码。
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kubia-liveness
+spec:
+  containers:
+  - image: luksa/kubia-unhealthy
+    name: kubia
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 8080
+      initialDelaySeconds: 15
+```
+
+`kubia-liveness-probe-initial-delay.yaml`文件中在`livenessProbe`中指定了通过`httpGet`探测的探针地址检测应用的状态，为了防止容器启动时通过探针地址检测应用状态，可以通过设置`initialDelaySeconds`指定应用启动间隔时间（向`sping`应用的`/health`端点就非常合适）。
+
+了解`ReplicationController`组件：`ReplicationController`是一种`kubernetes`资源，可确保它的`pod`始终保持运行状态。如果`pod`因任何原因消失，则`ReplicationController`会注意到缺少了`pod`并创建替代`pod`。`ReplicationController`的工作是确保`pod`的数量始终与其标签选择器匹配，若不匹配则`rc`会根据需要，采取适当的操作来协调`pod`的数量。`label selector`用于确定`rc`作用域内有哪些`pod`、`replica count`指定应运行的`pod`数量、`pod template`用于创建新的`pod`副本。
+
+```yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: kubia
+spec:
+  replicas: 3
+  selector:
+    app: kubia
+  template:
+    metadata:
+      labels:
+        app: kubia
+    spec:
+      containers:
+      - name: kubia
+        image: luksa/kubia
+        ports:
+        - containerPort: 8080
+```
+
+`kubia-rc.yaml`文件定义，在`yaml`中`selector`指定了符合标签的选择器`app: kubia`。若删除的`rc`创建的一个`pod`，则其会自动创建新的`pod`使得副本的数量达到`yaml`文件配置的数量。若要将`pod`移出`rc`作用域，可以通过更改`pod`的标签将其从`rc`的作用域中进行移除，`--overwrite`参数是必要的，否则`kubectl`将只是打印出警告，并不会更改标签。对于修改`rc`的`template`只会对之后新创建的`pod`有影响，而对之前已有的`pod`不会造成影响。若需要对`pod`进行水平扩展，可以通过修改`edit`调整`replicas:10`的属性，或者通过命令行`kubectl scale rc kubia --replication=10`进行调整。
+
+```shell
+sam@elementoryos:~$ sudo kubectl create -f kubia-rc.yaml
+ReplicationController "kubia" created
+sam@elementoryos:~$ sudo kubectl label pod kubia-demdck app=foo --overwrite
+# 通过kubectl更改rc的template内容
+sam@elementoryos:~$ sudo kubectl edit rc kubia
+```
+
+当要删除`rc`则可以通过`kubectl delete`进行操作，`rc`所管理的所有`pod`也会被删除。若需要保留`pod`的时候，则需要在命令行添加`--cascade=false`的配置，当删除`replicationController`后，其之前所管理的`pod`就独立。
+
+`ReplicaSet`的引入：最初`ReplicationController`是用于复制和在异常时重新调度节点的唯一`kubernetes`组件，后来引入了`ReplicaSet`的类似资源。它是新一代的`rc`并且会将其完全替换掉。`ReplicaSet`的行为与`rc`完全相同，但`pod`选择器的表达能力更强。在`yaml`文件配置中其`apiVersion`内容为`apps/v1beta2`，其`kind`类型为`ReplicaSet`类型。
+
+```shell
+sam@elementoryos:~$ sudo kubectl delete rs kubia
+```
+
+引入`DaemonSet`组件：要在所有集群结点上运行一个`pod`，需要创建一个`DaemonSet`对象。`DaemonSet`确保创建足够的`pod`，并在自己的节点上部署每个`pod`。尽管`ReplicaSet(ReplicationController)`确保集群中存在期望数量的`pod`副本，但`DaemonSet`并没有期望的副本的概念。它不需要，因为它的工作是确保一个`pod`匹配它的选择器并在每个节点上运行。
+
+在`DaemonSet`的`yml`配置文件中，其`apiVersion`内容为`apps/v1beta2`，`kind`类型为`DeamonSet`。在删除`DaemonSet`时候其所管理`pod`也会被一并删除。
+
+```shell
+sam@elementoryos:~$ sudo kubectl create -d ssd-monitor-deamonset.yaml
+# view all DaemonSet components in kubernetes
+sam@elementoryos:~$ sudo kubectl get ds
+```
+
