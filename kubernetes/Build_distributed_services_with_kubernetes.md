@@ -265,3 +265,125 @@ sam@elementoryos:~/kubernetes$ sudo kubectl logs batch-job-nzbmv
 Sun Nov 17 09:09:01 UTC 2019 Batch job starting
 ```
 
+
+
+`service`服务：让客户端发现`pod`并与之通信
+
+> `kubernetes`服务是一种为一组功能相同`pod`提供单一不变的接入点的资源，当服务存在时，它的`ip`地址和端口不变。客户端通过固定`ip`和`port`建立连接，这种连接会被路由到提供该服务的任意一个`pod`上。通过这种方式，客户端不需要知道每个`pod`的地址，这样这些`pod`就可以在集群中被随时创建或者移除。
+
+可以使用`kubectl expose`命令创建服务，`rc`是`replicationcontroller`的缩写。由于`minikube`不支持`LoadBalance`类型的服务，因此服务的`external-ip`地址为`<none>`。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl expose rc kubia --type=LoadBalancer --name kubia-http
+service "kubia-http" exposed
+sam@elementoryos:~/kubernetes$ sudo kubectl get services
+NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP          2d5h
+kubia        ClusterIP   10.111.211.203   <none>        80/TCP,443/TCP   22h
+sam@elementoryos:~/kubernetes$ sudo kubectl get pods
+NAME          READY   STATUS    RESTARTS   AGE
+kubia-9vds6   1/1     Running   0          23h
+kubia-cpjvx   1/1     Running   0          23h
+kubia-hs5vq   1/1     Running   0          23h
+```
+
+另一种是使用`yaml`描述文件`kubia-svc.yaml`来创建服务，使用`sudo kubectl create -f kubia-svc.yaml ` 。`service`也是通过`selector`筛选符合条件的`pod`，通过`ports`对端口进行转发。
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubia
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: kubia
+```
+
+从内部集群测试服务，可以通过`kubectl exec`命令在一个已经存在的`pod`中执行`curl`命令，其作用和`docker exec`命令比较类似。在`kubernetes`命令中`--`代表着`kubectl`命令项的结束，在`--`后的内容是在`pod`内部需要执行的命令。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl exec kubia-9vds6 -- curl -s http://10.111.211.203
+You've hit kubia-cpjvx
+```
+
+通过环境变量发现服务：在`pod`开始的时候，`kubernetes`会初始化一系列的环境变量指向现在存在的服务。一旦选择了目标`pod`，通过在容器中运行`env`来列出所有的环境变量。在`ENV`列出的环境变量中，`KUBIA_SERVICE_HOST`和`KUBIA_SERVICE_PORT`分表代表了`kubia`服务的`ip`地址和端口号。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl exec kubia-9vds6 env
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=kubia-9vds6
+KUBERNETES_PORT_443_TCP_PORT=443
+KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+KUBERNETES_SERVICE_HOST=10.96.0.1
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_SERVICE_PORT_HTTPS=443
+KUBERNETES_PORT=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+NPM_CONFIG_LOGLEVEL=info
+NODE_VERSION=7.9.0
+YARN_VERSION=0.22.0
+HOME=/root
+```
+
+通过`dns`发现服务：在`kube-system`命名空间下列出的所有`pod`信息，其中一个为`coredns-755587fdc8`。每个服务从内部`dns`服务器中获得一个`dns`条目，客户端的`pod`在知道服务名称的情况下可以通过全限定域名`(FQDN)`来访问，而不是诉诸于环境变量。前端`pod`可以通过`backend-database.default.svc.cluster.local`访问后端数据库服务：`backend-database`对应于服务名称，`default`表示服务在其中定义的名称空间，`svc.cluster.local`是在所有集群本地服务名称中使用的可配置集群域后缀。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl get pods --namespace kube-system
+NAME                               READY   STATUS             RESTARTS   AGE
+coredns-755587fdc8-nz7s8           0/1     CrashLoopBackOff   80         2d6h
+etcd-minikube                      1/1     Running            0          2d6h
+kube-addon-manager-minikube        1/1     Running            0          2d6h
+kube-apiserver-minikube            1/1     Running            0          2d6h
+kube-controller-manager-minikube   1/1     Running            0          2d6h
+kube-proxy-gczr4                   1/1     Running            0          2d6h
+kube-scheduler-minikube            1/1     Running            0          2d6h
+storage-provisioner                1/1     Running            0          2d6h
+```
+
+由于`kubernetes`容器编排中`kube-dns`服务不可用，因而在`pod`内部无法实现通过`service.namespace.clustername`访问`exposed`服务。在`pod`内部`/etc/resolv.conf`文件中保存内容与`host`文件类似。在`curl`这个服务是工作的，但却是`ping`不通的，因为服务的集群`ip`是一个虚拟`ip`，并且只有在于服务端口结合时才有意义。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl exec -it kubia-9vds6 bash
+[sudo] password for sam: ******        
+root@kubia-9vds6:/# curl http://kubia.default.svc.cluster.local
+curl: (6) Could not resolve host: kubia.default.svc.cluster.local
+root@kubia-9vds6:/# curl http://kubia.default
+curl: (6) Could not resolve host: kubia.default
+root@kubia-9vds6:/# curl http://kubia        
+curl: (6) Could not resolve host: kubia
+
+root@kubia-9vds6:/# cat /etc/resolv.conf 
+nameserver 10.96.0.10
+search default.svc.cluster.local svc.cluster.local cluster.local localdomain
+```
+
+连接集群外部的服务：在`kubernetes`中，服务并不是和`pod`直接相连的。相反，有一种资源介于两者之前——它就是`Endpoint`资源。如果之前在服务在运行过`kubectl describe`。`endpoint`资源就是暴露一个服务的`ip`地址和端口的列表，`endpoint`资源和其他`kubernetes`资源一样，所以可以使用`kubectl info`来获取它的基本信息。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl describe svc kubia
+[sudo] password for sam:        
+Name:              kubia
+Namespace:         default
+Labels:            <none>
+Annotations:       <none>
+Selector:          app=kubia
+Type:              ClusterIP
+IP:                10.111.211.203
+Port:              http  80/TCP
+TargetPort:        8080/TCP
+Endpoints:         172.17.0.5:8080,172.17.0.6:8080,172.17.0.7:8080
+Port:              https  443/TCP
+TargetPort:        8443/TCP
+Endpoints:         172.17.0.5:8443,172.17.0.6:8443,172.17.0.7:8443
+Session Affinity:  ClientIP
+Events:            <none>
+
+sam@elementoryos:~/kubernetes$ sudo kubectl get endpoints kubia
+NAME    ENDPOINTS                                                     AGE
+kubia   172.17.0.5:8443,172.17.0.6:8443,172.17.0.7:8443 + 3 more...   23h
+```
+
