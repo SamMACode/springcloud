@@ -387,3 +387,62 @@ NAME    ENDPOINTS                                                     AGE
 kubia   172.17.0.5:8443,172.17.0.6:8443,172.17.0.7:8443 + 3 more...   23h
 ```
 
+将服务暴露给外部客户端：服务的`pod`不仅可以在`kubernetes`内部进行调用，有时，`k8s`还需要向外部服务公开某些服务（例如`web`服务器，以便外部客户端可以访问它们）。有几种方式可以在外部访问服务：将服务类型设置为`NodePort`——每个集群节点都会在节点上打开一个端口，对于`NodePort`服务，每个集群节点在节点本身上打开一个端口，并将该端口上接收到的流量重定向到基础服务；将服务类型设置为`LoadBalance`，`NodePort`类型的一种扩展——这使得服务可以通过一个专用的负载均衡器来访问，这是由`kubernetes`中正在运行的云基础设置提供的；创建一个`Ingress`服务，这是一个完全不同的机制，通过一个`ip`地址公开多个服务。
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubia-nodeport
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30123
+  selector:
+    app: kubia
+```
+
+在配置文件`kubia-svc-nodeport.yaml`中，`spec`部分的`type`属性值为`NodePort`类型。其中`targetPort`表示背后`pod`的目标端口号、通过`nodePort`的集群的`30123`端口可以访问该服务。通过`kubectl get svc kubia-nodeport`可以看到`ENTERNAL-IP`列数据为`<nodes>`，表示服务可通过任何集群节点的`ip`地址访问。其中`PORT(S)`列显示集群`IP(80)`的内部端口和节点端口`(30123)`。可以使用`curl`命令通过`10.109.37.229`地址进行请求`pod`。在使用`minikube`时，可以运行`minikube service <service-name>`命令，就可以通过浏览器轻松访问`NodePort`服务。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl create -f kubia-svc-nodeport.yaml 
+[sudo] password for sam:        
+service/kubia-nodeport created
+sam@elementoryos:~/kubernetes$ sudo kubectl get svc kubia-nodeport
+NAME             TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubia-nodeport   NodePort   10.109.37.229   <none>        80:30123/TCP   17s
+sam@elementoryos:~/kubernetes$ curl http://10.109.37.229:80
+You've hit kubia-9vds6
+sam@elementoryos:~/kubernetes$ sudo minikube service kubia-nodeport
+|-----------|----------------|-------------|------------------------------|
+| NAMESPACE |      NAME      | TARGET PORT |             URL              |
+|-----------|----------------|-------------|------------------------------|
+| default   | kubia-nodeport |             | http://192.168.170.130:30123 |
+|-----------|----------------|-------------|------------------------------|
+🎉  Opening kubernetes service  default/kubia-nodeport in default browser...
+```
+
+通过负载均衡将服务暴露出来，创建`LoadBalance`服务，`spec.type`的类型为`LoadBalancer`。如果没有指定特定的节点端口，`kubernetes`将会选择一个端口。如果使用的是`minikube`，尽管负载平衡器不会被分配，仍然可以通过节点端口（位于`minikube vm`的`ip`地址）访问服务。
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubia-loadbalancer
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: kubia
+```
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl get svc kubia-loadbalancer
+NAME                 TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+kubia-loadbalancer   LoadBalancer   10.101.132.161   <pending>     80:32608/TCP   41s
+```
+
