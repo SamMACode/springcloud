@@ -387,7 +387,9 @@ NAME    ENDPOINTS                                                     AGE
 kubia   172.17.0.5:8443,172.17.0.6:8443,172.17.0.7:8443 + 3 more...   23h
 ```
 
-将服务暴露给外部客户端：服务的`pod`不仅可以在`kubernetes`内部进行调用，有时，`k8s`还需要向外部服务公开某些服务（例如`web`服务器，以便外部客户端可以访问它们）。有几种方式可以在外部访问服务：将服务类型设置为`NodePort`——每个集群节点都会在节点上打开一个端口，对于`NodePort`服务，每个集群节点在节点本身上打开一个端口，并将该端口上接收到的流量重定向到基础服务；将服务类型设置为`LoadBalance`，`NodePort`类型的一种扩展——这使得服务可以通过一个专用的负载均衡器来访问，这是由`kubernetes`中正在运行的云基础设置提供的；创建一个`Ingress`服务，这是一个完全不同的机制，通过一个`ip`地址公开多个服务。
+将服务暴露给外部客户端：服务的`pod`不仅可以在`kubernetes`内部进行调用，有时，`k8s`还需要向外部服务公开某些服务（例如`web`服务器，以便外部客户端可以访问它们）。
+
+> 有几种方式可以在外部访问服务：将服务类型设置为`NodePort`——每个集群节点都会在节点上打开一个端口，对于`NodePort`服务，每个集群节点在节点本身上打开一个端口，并将该端口上接收到的流量重定向到基础服务；将服务类型设置为`LoadBalance`，`NodePort`类型的一种扩展——这使得服务可以通过一个专用的负载均衡器来访问，这是由`kubernetes`中正在运行的云基础设置提供的；创建一个`Ingress`服务，这是一个完全不同的机制，通过一个`ip`地址公开多个服务。
 
 ```yaml
 apiVersion: v1
@@ -444,5 +446,39 @@ spec:
 sam@elementoryos:~/kubernetes$ sudo kubectl get svc kubia-loadbalancer
 NAME                 TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
 kubia-loadbalancer   LoadBalancer   10.101.132.161   <pending>     80:32608/TCP   41s
+```
+
+使用`Ingress`向外暴露服务的意义：一个重要的原因是每个`LoadBalancer`服务都需要自己的负载均衡器，以及独有的公有`ip`地址，而`Ingress`只需要一个公网`ip`就能为许多服务提供访问。在介绍`Ingress`对象提供的功能之前，必须强调只有`Ingress`控制器在集群中运行，`Ingree`资源才能正常工作。由于网络限制在使用`minikube`时，并不能从外网`pull`所需的镜像。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo minikube addons enable ingress
+✅  ingress was successfully enabled
+sam@elementoryos:~/kubernetes$ sudo kubectl get pods --all-namespaces
+kube-system            nginx-ingress-controller-6fc5bcc8c9-7zp46    0/1     ImagePullBackOff   0          6m8s
+```
+
+使用`kubia-ingress.yaml`在`kubernetes`中创建`Ingress`资源，`Ingress`将域名`kubia.example.com`映射到你的服务，将所有的请求发送到`kubia-nodeport`服务的`80`端口。`Ingress`的工作原理：客户端通过`Ingress`控制器连接到其中一个`pod`，客户端首先对`kubia.example.com`执行`DNS`查找，`DNS`服务器返回了`Ingress`控制的`ip`。客户端然后向`Ingress`控制器发送`Http`请求，并在`Host`头中指定`kubia.example.com`。控制器从该头部确定客户端尝试访问哪个服务，通过与该服务关联的`Endpoint`对象查看`pod IP`，并将客户端的请求转发给其中一个`pod`。
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kubia
+spec:
+  rules:
+  - host: kubia.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: kubia-nodeport
+          servicePort: 80
+```
+`Ingress`不仅可以转发`http`流量，可以使用`Ingress`创建`TLS`进行认证，控制器将终止`tls`连接。客户端和控制器之间的通信是加密的，而控制器和后端`pod`之前的通信则不是。运行在`pod`上的应用程序是不需要`tls`，如果`pod`运行`web`服务器，则它只能接收`http`通信。要使控制器能够这样做，需要将证书和私钥附加到`Ingress`，这两个必须资源存储在称为`secret`的`kubernetes`资源中，然后在`Ingress manifest`中引用它。
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl get ingresses
+Name 				Hosts				Address 		Ports		 Age
+kubia			kubia.example.com   192.168.99.100		80			 29m
+sam@elementoryos:~/kubernetes$ curl http://kubia.example.com
+You've hit kubia-9vds6
 ```
 
