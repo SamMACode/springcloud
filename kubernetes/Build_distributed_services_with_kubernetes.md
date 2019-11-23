@@ -474,6 +474,7 @@ spec:
           servicePort: 80
 ```
 `Ingress`不仅可以转发`http`流量，可以使用`Ingress`创建`TLS`进行认证，控制器将终止`tls`连接。客户端和控制器之间的通信是加密的，而控制器和后端`pod`之前的通信则不是。运行在`pod`上的应用程序是不需要`tls`，如果`pod`运行`web`服务器，则它只能接收`http`通信。要使控制器能够这样做，需要将证书和私钥附加到`Ingress`，这两个必须资源存储在称为`secret`的`kubernetes`资源中，然后在`Ingress manifest`中引用它。
+
 ```shell
 sam@elementoryos:~/kubernetes$ sudo kubectl get ingresses
 Name 				Hosts				Address 		Ports		 Age
@@ -481,4 +482,10 @@ kubia			kubia.example.com   192.168.99.100		80			 29m
 sam@elementoryos:~/kubernetes$ curl http://kubia.example.com
 You've hit kubia-9vds6
 ```
+
+
+
+#### 四、`kubernetes`卷挂载、用`ConfigMap`和`Secret`配置应用
+
+`kubernetes`的卷是`pod`的一个组成部分，因此像容器一样在`pod`的规范中做定义了。它们不是独立的`kubernetes`对象，也不能单独创建或删除。`pod`中的所有容器都可以使用卷，但必须先将它挂载在每个需要访问它的容器中。在每个容器中，都可以在其文件系统的任何位置挂载卷。
 

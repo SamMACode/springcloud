@@ -4,7 +4,7 @@
 
 #  微服务系统设计
 
-`SamMACode/springcloud`项目是基于`spring csloud`构建的微服务系统，整个项目主要包括`api-gateway（服务网关）`、`config-repo（配置中心）`、`eureka（服务发现）`以及`order`、`product`、`user`3个微服务。 整个项目围绕用户购买商品并进行支付订单为简单应用场景，对于单体系统演化到微服务系统，在其中寻找业务边界并进行服务拆分，有很多值得深入思考的问题。
+`SamMACode/springcloud`项目是基于`spring cloud`构建的微服务系统，整个项目主要包括`api-gateway（服务网关）`、`config-repo（配置中心）`、`eureka（服务发现）`以及`order`、`product`、`user`3个微服务。 整个项目围绕用户购买商品并进行支付订单为简单应用场景，对于单体系统演化到微服务系统，在其中寻找业务边界并进行服务拆分，有很多值得深入思考的问题。
 
 ### 1. 什么是微服务，微服务系统设计的优点
 
