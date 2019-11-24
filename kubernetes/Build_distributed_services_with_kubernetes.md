@@ -489,3 +489,137 @@ You've hit kubia-9vds6
 
 `kubernetes`的卷是`pod`的一个组成部分，因此像容器一样在`pod`的规范中做定义了。它们不是独立的`kubernetes`对象，也不能单独创建或删除。`pod`中的所有容器都可以使用卷，但必须先将它挂载在每个需要访问它的容器中。在每个容器中，都可以在其文件系统的任何位置挂载卷。
 
+最简单的卷类型是`emptyDir`卷，一个`emptyDir`卷对于在同一个`pod`中运行的容器至今共享文件特别有用，其可以被单个容器用于将数据临时写入磁盘。在`fortune-pod.yaml`中`pod`包含两个容器和一个挂载在两个容器中公用的卷，但在不同的路径上。`html-generator`启动时，它每`10`秒启动一次`fortune`命令输出到`/var/htdocs/index.html`文件。当`web-server`容器启动，它就开始为`/usr/share/nginx/html`目录中的任意`html`文件提供服务，最终效果是，一个客户端向`pod`上`80`端口发送一个`http`请求，将接收当前的`fortune`消息作为响应。
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune
+spec:
+  containers:
+  - image: luksa/fortune
+    name: html-generator
+    volumeMounts:
+    - name: html
+      mountPath: /var/htdocs
+  - image: nginx:alpine
+    name: web-server
+    volumeMounts:
+    - name: html
+      mountPath: /usr/share/nginx/html
+      readOnly: true
+    ports:
+    - containerPort: 80
+      protocol: TCP
+  volumes:
+  - name: html
+    emptyDir: {}
+```
+
+为了查看`fortune`消息，需要启用对`pod`的访问，可以尝试将端口从本地机器转发到`pod`实现。若等待几秒发送另一个请求，则应该会接收另一条消息。作为卷来使用`emptyDit`，是在承载`pod`的工作节点的实际磁盘上创建的。可以将`emptyDir`的`medium`设置为`Memory`将临时数据写入到内存中。
+
+```shell
+sam@elementoryos:~/kubernetes/fortune$ sudo kubectl port-forward fortune 8080:80
+Forwarding from 127.0.0.1:8080 -> 80
+Forwarding from [::1]:8080 -> 80
+Handling connection for 8080
+
+sam@elementoryos:~/kubernetes$ curl http://localhost:8080
+Your talents will be recognized and suitably rewarded.
+sam@elementoryos:~/kubernetes$ curl http://localhost:8080
+Your business will go through a period of considerable expansion.
+```
+
+使用`Git`仓库作为存储卷：`gitRepo`卷基本上也是一个`emptyDir`卷，它通过克隆`Git`仓库并在`pod`启动时（但在创建容器之前）检出特定版本来填充数据。在创建`pod`之前，需要有一个包含`html`文件并实际可用的`Git`仓库。创建`pod`时，首先将卷初始化为一个空目录，然后将制定的`Git`仓库克隆到其中。`kubernetes`会将分支切换到`master`上。
+
+```yaml
+  volumes:
+  - name: html
+    gitRepo:
+      repository: https://github.com/luksa/kubia-website-example.git
+      revision: master
+      directory: .
+```
+
+`kubernetes`中某些系统级别的`pod`会使用`hostPath`访问节点文件系统上的文件，`hostPath`卷指向节点系统上的特定文件或目录。在同一个结点上运行并在其`hostPath`卷中使用相同路径的`pod`可以看到相同的文件。`hostPath`卷持久性存储，`gitRepo`和`emptyDir`卷的内容都会在`pod`被删除时被删除，而`hostPath`卷的内容则不会被删除。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl get pods --namespace kube-system
+[sudo] password for sam:        
+NAME                                        READY   STATUS             RESTARTS   AGE
+coredns-755587fdc8-nz7s8                    0/1     CrashLoopBackOff   402        4d20h
+etcd-minikube                               1/1     Running            1          4d20h
+kube-controller-manager-minikube            1/1     Running            20         4d20h
+kube-proxy-gczr4                            1/1     Running            1          4d20h
+
+sam@elementoryos:~/kubernetes$ sudo kubectl describe pod kube-proxy-gczr4 --namespace kube-system
+Volumes:
+  kube-proxy:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      kube-proxy
+    Optional:  false
+  xtables-lock:
+    Type:          HostPath (bare host directory volume)
+    Path:          /run/xtables.lock
+    HostPathType:  FileOrCreate
+  lib-modules:
+    Type:          HostPath (bare host directory volume)
+    Path:          /lib/modules
+    HostPathType:  
+  kube-proxy-token-qdktp:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  kube-proxy-token-qdktp
+    Optional:    false
+QoS Class:       BestEffort
+```
+
+
+
+配置容器化应用程序，在`kubernetes`中使用`ConfigMap`配置`pod`应用：
+
+> 无论是否在使用`ConfigMap`存储配置数据，如下三种方式都可用于配置你的应用程序：向容器中传递命令行参数、为每个容器设置自定义环境变量、通过特殊类型的卷将配置文件挂载到容器中。
+
+在`docker`中定义命令与参数：`ENTRYPOINT`和`CMD`，在`Dockerfile`中的两种指令分别定义命令与参数这两部分，`ENTRYPOINT`定义容器启动时被调用的可执行程序、`CMD`指定传递给`ENTRYPOINT`的参数。在`fortune`镜像中添加`VARIABLE`变量并用第一个命令行参数对其进行初始化`INTERVAL=$1`，在`Dockerfile`中添加`CMD ["10"]`将命令行参数进行传递。
+
+`kubernetes`允许将配置选项分离到单独的资源对象`ConfigMap`中，本质上就是一个键/值对映射，值可以是短字面量，也可以是完整的配置文件。映射的内容通过环境变量或者卷文件的形式传递给容器，而并非直接传递给容器。命令行参数的定义中可以通过`${ENV_VAR}`语法引用环境变量，因而可以达到将`ConfigMap`的条目当作命令行参数传递给进程。
+
+```shell
+sam@elementoryos:~/kubernetes$ sudo kubectl create configmap fortune-config --from-literal=sleep-interval=25
+[sudo] password for sam:        
+configmap/fortune-config created
+
+sam@elementoryos:~/kubernetes$ sudo kubectl get configmap fortune-config -o yaml
+apiVersion: v1
+data:
+  sleep-interval: "25"
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2019-11-24T09:51:36Z"
+  name: fortune-config
+  namespace: default
+  resourceVersion: "151450"
+  selfLink: /api/v1/namespaces/default/configmaps/fortune-config
+  uid: 918d8a0a-f4a1-4b75-8f5b-e1f018a33dec
+```
+
+可以使用`kubectl create configmap` 创建`ConfigMap`，此命令支持从磁盘上读取文件，并将文件内容单独存储为`ConfigMap`中的条目。给容器传递`ConfigMap`条目作为环境变量，如`fortune-pod-env-configmap.yaml`。设置环境变量`INTERVAL	`，用`ConfigMap`初始化不设置固定值，环境变量中的`key`设置为`sleep-interval`。
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune-env-from-configmap
+spec:
+  containers:
+  - image: luksa/fortune:env
+    env:
+    - name: INTERVAL
+      valueFrom: 
+        configMapKeyRef:
+          name: fortune-config
+          key: sleep-interval
+```
+
+一次性传递`ConfigMap`的所有条目作为环境变量，为每个条目单独设置环境变量的过程是单调乏味且容易出错的。在`kubernetes`的`1.6`版本提供了暴露`ConfigMap`的所有条目作为环境变量的手段。若需要将参数传递到`docker`容器内，可以通过`yaml`配置文件中设置`args: ["${INTERVAL}"]`。
+
