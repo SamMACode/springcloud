@@ -623,3 +623,40 @@ spec:
 
 一次性传递`ConfigMap`的所有条目作为环境变量，为每个条目单独设置环境变量的过程是单调乏味且容易出错的。在`kubernetes`的`1.6`版本提供了暴露`ConfigMap`的所有条目作为环境变量的手段。若需要将参数传递到`docker`容器内，可以通过`yaml`配置文件中设置`args: ["${INTERVAL}"]`。
 
+使用`secret`给容器传递敏感数据：`kubernetes`提供了一种称为`secret`的单独资源对象。`secret`结构与`configMap`类似，均是键/值对的映射。`secret`的使用方法也与`configMap`相同，可以将`secret`条目作为环境变量传递给容器、将`secret`条目暴露给卷中的文件。
+
+对于任意一个`pod`使用命令`kubectl describe pod`运行时，每个`pod`都会自动挂载上一个`secret`卷，这个卷引用的是前面`kubectl describe`输出中的一个叫做`default-token-bvhjx`的`secret`。由于`secret`也是资源对象，因此可以通过`kubectl get secrets`命令从`secret`列表中找到这个`default-token secret`。在`kubectl describe secrets`中包含三个条目——`ca.crt`、`namespace`与`token`，包含了从`pod`内部安全访问`kubernetes api`服务器所需的全部信息。
+
+```shell
+sam@elementoryos:~/kubernetes/kubernetes-service$ sudo kubectl get pods
+NAME                   READY   STATUS    RESTARTS   AGE
+swagger-editor-z2fr6   1/1     Running   0          21s
+sam@elementoryos:~/kubernetes/kubernetes-service$ sudo kubectl describe pod
+Volumes:
+  default-token-bvhjx:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-bvhjx
+    Optional:    false
+    
+sam@elementoryos:~/kubernetes/kubernetes-service$ sudo kubectl get secrets
+NAME                  TYPE                                  DATA   AGE
+default-token-bvhjx   kubernetes.io/service-account-token   3      5m59s    
+sam@elementoryos:~/kubernetes/kubernetes-service$ sudo kubectl describe secrets
+Name:         default-token-bvhjx
+Namespace:    default
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: default
+              kubernetes.io/service-account.uid: 6382d69c-21e6-4cdc-8193-417233ab5767
+Type:  kubernetes.io/service-account-token
+Data
+====
+ca.crt:     1066 bytes
+namespace:  7 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6Ij
+
+sam@elementoryos:~/kubernetes/kubernetes-service$ sudo kubectl exec swagger-editor-z2fr6 ls /var/run/secrets/kubernetes.io/serviceaccount/
+ca.crt
+namespace
+token
+```
+
