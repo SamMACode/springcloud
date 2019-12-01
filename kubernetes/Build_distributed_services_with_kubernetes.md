@@ -660,3 +660,171 @@ namespace
 token
 ```
 
+
+
+使用`Downward API`访问`pod`的元数据以及其他资源、与`Kubernetes API`服务器交互：
+
+> 通过环境变量或者`configMap`和`secret`卷向应用传递配置数据，这对于`pod`调度、运行前预设的数据是可行的。但是那些不能预先知道的数据，如`pod`的`ip`、主机名或者`pod`自身的名称，对于此类问题，可以通过使用`Kubernetes download API`解决，这种方式主要是将在`pod`的定义和状态中取的的数据作为环境变量和文件的值。
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: downward
+spec:
+  containers:
+  - name: main
+    image: busybox
+    command: ["sleep", "9999999"]
+    resources:
+      requests:
+        cpu: 15m
+        memory: 100Ki
+      limits:
+        cpu: 100m
+        memory: 4Mi
+    env:
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    - name: NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    - name: SERVICE_ACCOUNT
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.serviceAccountName
+```
+
+在`downward-api-env.yaml`中，引用`pod manifest`中的元数据名称字段而不是设定一个具体的值。通过`valueFrom`中的`fieldPath`属性获取`spec.nodeName`元数据。在`yaml`文件中有引用`metadata.name`、`metadata.namespace`、`status.podIP`、`status.nodeName`字段值。可以使用`kubectl exec downward env`查看`pod`中的环境变量：
+
+```shell
+sam@elementoryos:~/kubernetes/downward-api$ sudo kubectl create -f downward-api-env.yaml 
+pod/downward created
+sam@elementoryos:~/kubernetes/downward-api$ sudo kubectl exec downward env
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=downward
+POD_IP=172.17.0.7
+NODE_NAME=minikube
+SERVICE_ACCOUNT=default
+CONTAINER_CPU_REQUEST_MILLICORES=15
+CONTAINER_MEMORY_LIMIT_KIBIBYTES=4096
+POD_NAME=downward
+POD_NAMESPACE=default
+KUBIA_SERVICE_PORT=80
+KUBIA_PORT=tcp://10.110.207.33:80
+KUBIA_PORT_443_TCP_ADDR=10.110.207.33
+```
+
+如果更倾向于使用文件的方式而不是环境变量的方式暴露元数据，可以定义一个`downward API`卷并挂载到容器中，由于不能通过环境变量暴露，所以必须使用`downward API`卷来暴露`pod`标签或注解。与环境变量一样，需要显示地定义元器据字段来暴露份进程，我们将示例从使用环境变量修改为使用存储卷。
+
+```yaml
+...
+    volumeMounts:
+    - name: downward
+      mountPath: /etc/downward
+  volumes:
+  - name: downward
+    downwardAPI:
+      items:
+      - path: "podName"
+        fieldRef:
+          fieldPath: metadata.name
+      - path: "podNamespace"
+        fieldRef:
+          fieldPath: metadata.namespace
+      - path: "labels"
+        fieldRef:
+          fieldPath: metadata.labels
+      - path: "annotations"
+        fieldRef:
+          fieldPath: metadata.annotations
+      - path: "containerCpuRequestMilliCores"
+        resourceFieldRef:
+          containerName: main
+          resource: requests.cpu
+          divisor: 1m
+```
+
+在`downward-api-volume.yaml`文件中，现在并没有通过环境变量来传递元数据，而是定义了一个叫做`downward`的卷，并且通过`/etc/downward`目录挂载到我们的容器中。卷所包含的文件会通过卷定义中的`downwardAPI.items`属性来定义。若要在卷的定义中引用容器级的元数据，则需指定`containerName`属性的值为容器名称。
+
+```shell
+sam@elementoryos:~/kubernetes/downward-api$ sudo kubectl exec downward ls /etc/downward
+annotations
+containerCpuRequestMilliCores
+containerMemoryLimitBytes
+labels
+podName
+podNamespace
+sam@elementoryos:~/kubernetes/downward-api$ sudo kubectl exec downward cat /etc/downward/labels
+foo="bar"
+sam@elementoryos:~/kubernetes/downward-api$ sudo kubectl exec downward cat /etc/downward/annotations
+key1="value1"
+key2="multi\nline\nvalue\n"
+kubernetes.io/config.seen="2019-12-01T15:08:21.544699469+08:00"
+kubernetes.io/config.source="api" 
+```
+
+`Downward API`提供了一种简单的方式，将`pod`和容器的元数据传递给在它们内部运行的进程。通过`kubectl cluster-info`命令得到服务器的`Url`。因为服务器使用`https`协议并且需要授权，所以与服务器交互并不是一件简单的事情。可以尝试通过`curl`来访问它，使用`curl`的`--insecure`选项来跳过服务器证书检查环节。
+
+```shell
+kubernetes.io/config.source="api"sam@elementoryos:~/kubernetes/downward-api$ sudo kubectl cluster-info
+[sudo] password for sam:        
+Kubernetes master is running at https://192.168.170.128:8443
+CoreDNS is running at https://192.168.170.128:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+sam@elementoryos:~/kubernetes/downward-api$ sudo kubectl proxy
+Starting to serve on 127.0.0.1:8001
+
+sam@elementoryos:~/kubernetes$ curl localhost:8001
+{
+  "paths": [
+    "/api",
+    "/api/v1",
+    "/apis",
+    "/apis/",
+    "/apis/admissionregistration.k8s.io"
+    ...
+   ]
+}
+sam@elementoryos:~/kubernetes$ curl http://localhost:8001/apis/batch/v1/jobs
+{
+  "kind": "JobList",
+  "apiVersion": "batch/v1",
+  "metadata": {
+    "selfLink": "/apis/batch/v1/jobs",
+    "resourceVersion": "23398"
+  },
+  "items": []
+}
+```
+
+在响应消息展示了包括可用版本，客户推荐使用版本在内的批量`api`组信息。`api`服务器返回了在`batch/v1`目录下`api`组中资源类型以及`rest ednpoint`清单。除了资源的名称和相关类型，`api`服务器也包含了一些其他信息，比如资源是否被指定了命名空间、名称简写、资源对应可以使用的动词列表等。`curl http://localhost:8001/apis/batch/v1/jobs`路径运行一个`GET`请求，可以获取集群中所有`Job`清单。
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: curl-with-ambassador
+spec:
+  containers:
+  - name: main
+    image: tutum/curl
+    command: ["sleep", "9999999"]
+  - name: ambassador
+    image: luksa/kubectl-proxy:1.6.2
+```
+
+可以通过`embassador`容器简化与`api`服务器的交互，为了通过操作理解`ambassador`容器模式。我们像之前创建`curl pod`一样创建一个新的`pod`，但这次不是仅仅在`pod`中运行单个容器，而是基于一个多用途的`kubectl-proxy`容器镜像来运行一个额外的`ambassador`容器，当`pod`启动后会同时启动`kubectl-proxy`和`curl`服务。
+
