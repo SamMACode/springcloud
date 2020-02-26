@@ -24,7 +24,7 @@ import static org.springframework.cloud.netflix.zuul.filters.support.FilterConst
  * @create 2018-10-06 上午10:49
  **/
 @Component
-public class AuthFilter extends ZuulFilter {
+public class AuthPreFilter extends ZuulFilter {
 
     private static final String ORDER_CREATE_URL = "/order/order/create";
 
@@ -33,6 +33,10 @@ public class AuthFilter extends ZuulFilter {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    /**
+     * 前置过滤器,在请求到达路由过滤器调用run方法
+     * @return
+     */
     @Override
     public String filterType() {
         return PRE_TYPE;

@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.netflix.cloud</groupId>
-	<artifactId>product</artifactId>
+	<artifactId>product-service</artifactId>
 	<version>0.0.1</version>
     <modules>
         <module>product-client-sdk</module>
@@ -12,7 +12,7 @@
 	</modules>
     <packaging>pom</packaging>
 
-	<name>product</name>
+	<name>product-service</name>
 	<description>Demo project for Spring Boot</description>
 
 	<parent>

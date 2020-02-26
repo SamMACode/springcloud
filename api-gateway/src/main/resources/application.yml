@@ -1,0 +1,47 @@
+# 设置api-gateway服务网关的名称
+spring:
+  application:
+    name: api-gateway
+# 设置api-gateway服务网关启动时占用8080端口
+server:
+  port: 8080
+
+# 配置eureka注册中心,将api-gateway进行注册
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8762/eureka/
+
+# 配置order-service订单服务的route
+zuul:
+  # 通过ignored-services忽略eureka服务id路由的自动映射
+  ignored-services: 'order-service'
+  # 所有已定义的服务都将添加前缀/api
+  prefix: /api
+  # 在rest请求到达service之前会移除前缀prefix
+  strip-prefix: true
+  routes:
+    order-service: /order/**
+    product-service: /product/**
+    user-service: /user/**
+
+    # 在api-gateway中配置静态资源static resource
+    auth-static-resource:
+      path: /api/oath-service/**
+      url: /userlogin-auth-with-token:8087
+
+# 对于spring-boot actuator暴露所有endpoints端点, /actuator/routes显示所有route映射
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+# 设置所有通过zuul运行的服务设置Hystrix超时时间 (针对特定服务使用service-name替换default)
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 2500
