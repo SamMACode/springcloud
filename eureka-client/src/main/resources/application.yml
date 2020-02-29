@@ -18,3 +18,9 @@ spring:
 # 设置eureka客户端服务的port地址为8081
 server:
   port: 8081
+
+# 配置服务以指向OAuth2验证服务 {http://localhost:8087/user}
+security:
+  oauth2:
+    resource:
+      user-info-uri: http://localhost:8087/user

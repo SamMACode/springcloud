@@ -10,7 +10,7 @@ eureka:
     register-with-eureka: false
     # 应用不在本地缓存注册表相关信息
     fetch-registry: false
-  # 关闭springcloud的自我保护模式,在product生产环境不建议关闭.
+  # 关闭spring-cloud的自我保护模式,在product生产环境不建议关闭.
   server:
     enable-self-preservation: false
     # 在服务器接收请求之前等待的初始时间(在本地环境可以注释该配置,用于快速发现注册的应用)

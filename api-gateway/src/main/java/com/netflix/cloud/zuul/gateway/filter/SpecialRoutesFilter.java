@@ -45,9 +45,9 @@ import java.util.Map;
 /**
  * @author Sam Ma
  * @date 2020/2/26
- * 构建动态路由过滤器，从而允许对新版本的服务进行A/B测试
+ * 构建动态路由过滤器，从而允许对新版本的服务进行A/B测试(临时性测试), 代码临时被注释;
  */
-@Component
+//@Component
 public class SpecialRoutesFilter extends ZuulFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SpecialRoutesFilter.class);

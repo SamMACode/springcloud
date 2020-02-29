@@ -17,18 +17,25 @@ zuul:
   # 通过ignored-services忽略eureka服务id路由的自动映射
   ignored-services: 'order-service'
   # 所有已定义的服务都将添加前缀/api
-  prefix: /api
+#  prefix: /api
   # 在rest请求到达service之前会移除前缀prefix
-  strip-prefix: true
+#  strip-prefix: true
   routes:
     order-service: /order/**
     product-service: /product/**
     user-service: /user/**
+    # 对eureka-client服务的请求前缀进行配置
+    eureka-client: /client/**
 
-    # 在api-gateway中配置静态资源static resource
-    auth-static-resource:
-      path: /api/oath-service/**
-      url: /userlogin-auth-with-token:8087
+    # 配置OAuth2授权相关服务配置静态资源static resource (web相关)
+    oauth2-service-api:
+      path: /oath2-service/**
+      url: http://localhost:8087
+      stripPrefix: true
+
+  # 默认Zuul不会将敏感头部信息Cookie、Set-Cookie以及Authorization传递给下游服务,在黑名单中
+  # 进行特殊配置(OAuth2需要Authorization)
+  sensitive-headers: Cookie, Set-Cookie
 
 # 对于spring-boot actuator暴露所有endpoints端点, /actuator/routes显示所有route映射
 management:
@@ -44,4 +51,4 @@ hystrix:
       execution:
         isolation:
           thread:
-            timeoutInMilliseconds: 2500
+            timeoutInMilliseconds: 4000
