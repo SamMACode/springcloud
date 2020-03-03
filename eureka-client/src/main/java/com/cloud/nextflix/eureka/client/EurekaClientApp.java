@@ -63,5 +63,16 @@ public class EurekaClientApp {
 		return resultMap;
 	}
 
+	/**
+	 * Spring OAuth2提供了一个支持OAuth2调用的新rest模板类, 问题:OAuth2ClientContext不能被@Autowired
+	 * @param oAuth2ClientContext
+	 * @param details
+	 * @return
+	 */
+	/*@Bean
+	public OAuth2RestTemplate oAuth2RestTemplate(OAuth2ClientContext oAuth2ClientContext,
+												 OAuth2ProtectedResourceDetails details) {
+		return new OAuth2RestTemplate(details, oAuth2ClientContext);
+	}*/
 
 }

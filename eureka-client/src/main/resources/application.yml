@@ -14,6 +14,9 @@ eureka:
 spring:
   application:
     name: eureka-client
+  # spring允许后面定义的bean覆盖已经存在的bean定义
+  main:
+    allow-bean-definition-overridng: true
 
 # 设置eureka客户端服务的port地址为8081
 server:
