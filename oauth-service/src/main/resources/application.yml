@@ -1,6 +1,13 @@
 spring:
   application:
     name: oauth2-service
+  # 目前应用运行指定profile为jwt-config-profile
+  profiles:
+    active: jwt-config-profile
 
 server:
   port: 8087
+
+# 配置java-web-token签名秘钥
+jwt:
+  signing-key: "345345fsdgsf5345"
