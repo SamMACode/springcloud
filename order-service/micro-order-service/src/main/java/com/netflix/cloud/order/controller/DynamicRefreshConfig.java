@@ -1,7 +1,10 @@
 package com.netflix.cloud.order.controller;
 
-import com.netflix.cloud.order.config.GirlConfig;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @create 2018-10-04 上午11:48
  **/
 @RestController
-public class GirlController {
+public class DynamicRefreshConfig {
 
     @Autowired
     private GirlConfig girlConfig;
@@ -21,4 +24,17 @@ public class GirlController {
     public String getGrilConfiguration() {
         return girlConfig.getName() + ", " + girlConfig.getAge();
     }
+
+    /**
+     * 使用前缀的方式获取application.yml文件中的配置
+     */
+    @Data
+    @ConfigurationProperties(prefix = "girl")
+    @Component
+    @RefreshScope
+    class GirlConfig {
+        private String name;
+        private Integer age;
+    }
+
 }

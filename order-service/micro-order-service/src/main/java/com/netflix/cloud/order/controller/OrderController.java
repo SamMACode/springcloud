@@ -60,7 +60,7 @@ public class OrderController {
         // 5.调用订单Order服务创建订单信息.
         OrderDTO result = orderService.create(orderDTO);
         // 返回处理后的结果,包括订单id编号以及订单描述信息code&message.
-        Map<String, String> map = new HashMap<>();
+        Map<String, String> map = new HashMap<>(1);
         map.put("orderId", result.getOrderId());
         return ResultVOUtils.success(map);
     }

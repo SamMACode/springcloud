@@ -11,3 +11,8 @@ server:
 # 配置java-web-token签名秘钥
 jwt:
   signing-key: "345345fsdgsf5345"
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8762/eureka/

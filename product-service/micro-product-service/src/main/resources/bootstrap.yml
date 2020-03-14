@@ -2,15 +2,29 @@
 spring:
   application:
     name: product-service
-# 开启spring cloud的config服务发现的配置
+  # 开启spring cloud的config服务发现的配置
   cloud:
     config:
       discovery:
         enabled: true
-# 配置spring cloud config的配置服务id编号
+        # 配置spring cloud config的配置服务id编号
         service-id: config-server
-# 配置配置文件中的profile类型为dev
+      # 配置配置文件中的profile类型为dev
       profile: dev
+    stream:
+      default-binder: kafka
+      # 通过spring cloud stream.binding.input属性将input通道映射到decreaseStockTopic队列
+      bindings:
+        input:
+          destination: decreaseStockTopic
+          content-type: application/json
+          group: product-consumer-group
+      kafka:
+        # stream.bindings.kafka属性告诉spring,将使用kafka作为服务中的消息总线
+        binder:
+          brokers: localhost:9092
+          zk-nodes: localhost:2181
+
 # 将商品应用注册到eureka服务上
 eureka:
   client:

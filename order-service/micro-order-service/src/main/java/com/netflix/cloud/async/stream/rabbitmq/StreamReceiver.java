@@ -1,5 +1,6 @@
-package com.netflix.cloud.order.message;
+package com.netflix.cloud.async.stream.rabbitmq;
 
+import com.netflix.cloud.async.stream.CustomChannel;
 import com.netflix.cloud.order.dto.OrderDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.annotation.EnableBinding;
@@ -13,18 +14,13 @@ import org.springframework.stereotype.Component;
  * @author dong
  * @create 2018-10-04 下午11:36
  **/
-@Component
-@EnableBinding(StreamClient.class)
+//@Component
+@EnableBinding(CustomChannel.class)
 @Slf4j
 public class StreamReceiver {
 
-    /*@StreamListener("myMessageOutput")
-    public void process(Object message) {
-        log.info("Stream receiver: {}", message);
-    }*/
-
     /**
-     * 用于接收orderDTO类型对象.
+     * 用于接收orderDTO类型对象
      * */
     @StreamListener("myMessageOutput")
     @SendTo("receiveMessageOutput")
@@ -40,4 +36,5 @@ public class StreamReceiver {
     public void process(String message) {
         log.info("result Stream : {}", message);
     }
+
 }

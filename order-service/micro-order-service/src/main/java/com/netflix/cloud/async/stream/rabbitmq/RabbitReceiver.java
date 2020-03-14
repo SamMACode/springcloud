@@ -1,4 +1,4 @@
-package com.netflix.cloud.order.message;
+package com.netflix.cloud.async.stream.rabbitmq;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -13,15 +13,16 @@ import org.springframework.stereotype.Component;
  * @author dong
  * @create 2018-10-04 下午10:11
  **/
-@Component
+//@Component
 @Slf4j
-public class MqReceiver {
+public class RabbitReceiver {
 
-    // 1.第一种简单的方式是通过 @RabbitListener("myQueue"),不过需要在rabbitMQ控制面板上手动去创建queue.
-    //   @RabbitListener("myQueue")
-    // 2.第二种是通过 queuesToDeclare注解指明queue的名称.
-    //   @RabbitListener(queuesToDeclare = @Queue("myQueue"))
-    // 3.第三种方式是自动创建 Exchange和Queue的绑定, 定义exchange与routingKey路由键.
+    /**
+     * 1.第一种简单的方式是通过 @RabbitListener("myQueue"),不过需要在rabbitMQ控制面板上手动去创建queue
+     * 2.第二种是通过 queuesToDeclare注解指明queue的名称,@RabbitListener(queuesToDeclare = @Queue("myQueue"))
+     * 3.第三种方式是自动创建 Exchange和Queue的绑定, 定义exchange与routingKey路由键
+     * @param message
+     */
     @RabbitListener(bindings = @QueueBinding(
             value = @Queue("myQueue"),
             exchange = @Exchange(name = "customExchange"),

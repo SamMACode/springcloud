@@ -12,6 +12,7 @@ spring:
           password: arm2013iwas
     # 配置spring cloud从远端的git服务器上拉取下来配置文件存放的路径
           basedir: /basedir
+#          basedir: /home/sam/repositories/springcloud/config-repo
     # 解决当本地git配置文件非最新,则强制其从远程github服务器上拉取最新配置文件
           force-pull: true
 # 设置eureka server端的地址,用于注册eureka服务
