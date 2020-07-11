@@ -11,7 +11,7 @@ import com.netflix.cloud.user.dataobject.UserInfo;
 public interface UserService {
 
     /**
-     * 通过openid来记性查询用户基本信息.
+     * 通过openid来记性查询用户基本信息
      * @param openid
      * */
     UserInfo findByOpenid(String openid);

@@ -2,6 +2,7 @@ package com.netflix.cloud.oauth;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
@@ -18,10 +19,11 @@ import java.util.Map;
  * oauth-service应用启动入口类，EnableAuthorizationServer用于告诉spring cloud该服务将作为oauth2服务
  */
 @SpringBootApplication
+@EnableEurekaClient
 @RestController
 @EnableResourceServer
 @EnableAuthorizationServer
-public class Oauth2Application {
+public class Oauth2App {
 
     /**
      * 1.http://localhost:8087/oauth/token [post]请求, [form-data]提交表单信息:
@@ -50,7 +52,7 @@ public class Oauth2Application {
      */
 
     public static void main(String[] args) {
-        SpringApplication.run(Oauth2Application.class, args);
+        SpringApplication.run(Oauth2App.class, args);
     }
 
     /**

@@ -59,12 +59,11 @@ public class AuthPreFilter extends ZuulFilter {
     public Object run() {
         RequestContext requestContext = RequestContext.getCurrentContext();
         HttpServletRequest request = requestContext.getRequest();
-
-        /**
-         * order/create 只能买家登录(cookie里有openid).
-         * order/finish 只能卖家登录(cookie里有token,并且对应的redis中有值).
-         * order/list 都可以访问.
-         * */
+        /*
+         * order/create 只能买家登录(cookie里有openid)
+         * order/finish 只能卖家登录(cookie里有token,并且对应的redis中有值)
+         * order/list 都可以访问
+         */
         if(ORDER_CREATE_URL.equals(request.getRequestURI())) {
             Cookie cookie = CookieUtil.getCookie(request, CookieConstant.OPEN_ID);
             if(cookie == null || StringUtils.isEmpty(cookie.getValue())) {

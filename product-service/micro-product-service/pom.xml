@@ -11,6 +11,10 @@
     <version>0.0.1</version>
     <name>micro-product-service</name>
     <packaging>jar</packaging>
+    <properties>
+        <fastjson.version>1.2.60</fastjson.version>
+        <docker-repository>spotify-music</docker-repository>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -55,7 +59,7 @@
         <dependency>
             <groupId>com.netflix.cloud</groupId>
             <artifactId>product-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
 
         <!-- spring cloud stream dependency synchronize message -->
@@ -77,7 +81,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.2.60</version>
+            <version>${fastjson.version}</version>
         </dependency>
     </dependencies>
 
@@ -87,6 +91,36 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- dockerfile-maven-plugin for building app to docker image -->
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>1.4.10</version>
+                <executions>
+                    <execution>
+                        <id>tag-version</id>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>tag</goal>
+                        </goals>
+                        <configuration>
+                            <tag>${project.version}</tag>
+                        </configuration>
+                    </execution>
+                </executions>
+
+                <!-- using maven setting.xml to authorized push docker image to registry -->
+                <configuration>
+                    <!--<useMavenSettingsForAuth>true</useMavenSettingsForAuth>-->
+                    <repository>${docker-repository}/${project.name}</repository>
+                    <tag>${project.version}</tag>
+                    <buildArgs>
+                        <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+                    </buildArgs>
+                    <dockerfile>${project.basedir}/docker/Dockerfile</dockerfile>
+                </configuration>
             </plugin>
         </plugins>
     </build>

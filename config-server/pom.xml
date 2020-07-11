@@ -12,7 +12,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.0.2.RELEASE</version>
+		<version>2.1.12.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -20,7 +20,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
-		<spring-cloud.version>Finchley.RELEASE</spring-cloud.version>
+		<spring-cloud.version>Greenwich.SR5</spring-cloud.version>
+		<docker-repository>spotify-music</docker-repository>
 	</properties>
 
 	<dependencies>
@@ -60,6 +61,36 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- dockerfile-maven-plugin for building app to docker image -->
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>dockerfile-maven-plugin</artifactId>
+				<version>1.4.10</version>
+				<executions>
+					<execution>
+						<id>tag-version</id>
+						<goals>
+							<goal>build</goal>
+							<goal>tag</goal>
+						</goals>
+						<configuration>
+							<tag>${project.version}</tag>
+						</configuration>
+					</execution>
+				</executions>
+
+				<!-- using maven setting.xml to authorized push docker image to registry -->
+				<configuration>
+					<!--<useMavenSettingsForAuth>true</useMavenSettingsForAuth>-->
+					<repository>${docker-repository}/${project.name}</repository>
+					<tag>${project.version}</tag>
+					<buildArgs>
+						<JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+					</buildArgs>
+					<dockerfile>${project.basedir}/docker/Dockerfile</dockerfile>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

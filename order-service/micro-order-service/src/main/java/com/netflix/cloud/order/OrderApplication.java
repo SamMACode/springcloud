@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
- * 更简洁的写法是使用@SpringCloudApplication注解.
+ * 更简洁的写法是使用@SpringCloudApplication注解
  * @author dong
  * */
 @EnableFeignClients(basePackages = "com.netflix.cloud.product.client")
@@ -32,6 +32,9 @@ public class OrderApplication {
 
 	@Bean
 	public ServletRegistrationBean getServlet() {
+		/*
+		 * hystrix dashboard: http://localhost:8085/hystrix.stream
+		 */
 		HystrixMetricsStreamServlet streamServlet = new HystrixMetricsStreamServlet();
 		ServletRegistrationBean registrationBean = new ServletRegistrationBean(streamServlet);
 		registrationBean.setLoadOnStartup(1);
@@ -39,4 +42,5 @@ public class OrderApplication {
 		registrationBean.setName("HystrixMetricsStreamServlet");
 		return registrationBean;
 	}
+
 }

@@ -11,7 +11,9 @@
     <packaging>jar</packaging>
 
     <properties>
-        <fastjson.version>1.2.60</fastjson.version>
+        <fastjson.version>1.2.61</fastjson.version>
+        <product.client.version>0.0.1</product.client.version>
+        <docker-repository>spotify-music</docker-repository>
     </properties>
 
     <dependencies>
@@ -46,6 +48,10 @@
             <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
@@ -60,15 +66,6 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-sleuth-zipkin</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
@@ -89,6 +86,7 @@
         <dependency>
             <groupId>com.netflix.cloud</groupId>
             <artifactId>product-client-sdk</artifactId>
+            <version>${product.client.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.validation</groupId>
@@ -124,6 +122,36 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- dockerfile-maven-plugin for building app to docker image -->
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>1.4.10</version>
+                <executions>
+                    <execution>
+                        <id>tag-version</id>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>tag</goal>
+                        </goals>
+                        <configuration>
+                            <tag>${project.version}</tag>
+                        </configuration>
+                    </execution>
+                </executions>
+
+                <!-- using maven setting.xml to authorized push docker image to registry -->
+                <configuration>
+                    <!--<useMavenSettingsForAuth>true</useMavenSettingsForAuth>-->
+                    <repository>${docker-repository}/${project.name}</repository>
+                    <tag>${project.version}</tag>
+                    <buildArgs>
+                        <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+                    </buildArgs>
+                    <dockerfile>${project.basedir}/docker/Dockerfile</dockerfile>
+                </configuration>
             </plugin>
         </plugins>
     </build>

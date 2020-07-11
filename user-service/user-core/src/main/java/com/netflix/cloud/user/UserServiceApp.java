@@ -1,9 +1,8 @@
-package com.netflix.cloud.config;
+package com.netflix.cloud.user;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.config.server.EnableConfigServer;
 
 /**
  * @author Sam Ma
@@ -11,13 +10,9 @@ import org.springframework.cloud.config.server.EnableConfigServer;
  */
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableConfigServer
-public class ConfigApplication {
+public class UserServiceApp {
 
-	/*
-	 * usage: 可通过get http://localhost:8082/bus/refresh更新config配置文件
-	 */
 	public static void main(String[] args) {
-		SpringApplication.run(ConfigApplication.class, args);
+		SpringApplication.run(UserServiceApp.class, args);
 	}
 }

@@ -19,6 +19,7 @@
         <spring-cloud.version>Finchley.RELEASE</spring-cloud.version>
         <spring.security.oauth.version>2.3.8.RELEASE</spring.security.oauth.version>
         <spring.security.jwt.version>1.0.1.RELEASE</spring.security.jwt.version>
+        <docker-repository>spotify-music</docker-repository>
     </properties>
 
     <dependencies>
@@ -46,6 +47,11 @@
             <artifactId>spring-security-jwt</artifactId>
             <version>${spring.security.jwt.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -66,7 +72,36 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
+            <!-- dockerfile-maven-plugin for building app to docker image -->
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>1.4.10</version>
+                <executions>
+                    <execution>
+                        <id>tag-version</id>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>tag</goal>
+                        </goals>
+                        <configuration>
+                            <tag>${project.version}</tag>
+                        </configuration>
+                    </execution>
+                </executions>
+
+                <!-- using maven setting.xml to authorized push docker image to registry -->
+                <configuration>
+                    <!--<useMavenSettingsForAuth>true</useMavenSettingsForAuth>-->
+                    <repository>${docker-repository}/${project.name}</repository>
+                    <tag>${project.version}</tag>
+                    <buildArgs>
+                        <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+                    </buildArgs>
+                    <dockerfile>${project.basedir}/docker/Dockerfile</dockerfile>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
-
 </project>

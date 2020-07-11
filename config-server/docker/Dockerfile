@@ -1,11 +1,10 @@
-# 从网易云镜像中心先获取下载到jdk镜像.
-FROM hub.c.163.com/library/java:alpine
-
-# 将config服务打包后的jar文件添加到docker中,并对其进行重命名为app.jar.
-ADD target/*.jar app.jar
-
-# 对外声明端口为8762,外部可以通过该端口进行访问config服务.
-EXPOSE 8763
-
-# 在ENTRYPOINT中指明运行容器中的jar文件需要制定的命令.
-ENTRYPOINT ["java", "-jar", "app.jar"]
+FROM java:8
+MAINTAINER Sam Ma <sam_newyork@163.com>
+ENTRYPOINT ["/usr/bin/java", "-jar", "/app/app.jar"]
+# mkdir /app directory for staging app.jar
+RUN mkdir /app && mkdir -p /Users/madong/datahub-repository/config-dir && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo "Asia/shanghai" > /etc/timezone
+# 将构建镜像时pom.xml中<JAR_FILE>中传递的参数声明为变量JAR_FILE
+ARG JAR_FILE
+# 将传递的Jar包拷贝到/app.jar目录下,同时对外暴露8080的端口
+ADD target/${JAR_FILE} /app/app.jar
+EXPOSE 8082

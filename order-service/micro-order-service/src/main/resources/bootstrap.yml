@@ -11,63 +11,9 @@ spring:
         service-id: config-server
       # 配置配置文件中的profile类型为dev
       profile: dev
-    # 对spring Cloud Stream消息进行分组group,当启动多个实例的时候保证只有一个实例消费消息
-    stream:
-      bindings:
-        output:
-          # 表示要写入消息的消息队列
-          destination: decreaseStockTopic
-          # content-type向spring cloud stream提供了发送和接收数据的格式
-          content-type: application/json
-      kafka:
-        # stream.bindings.kafka属性告诉spring,将使用kafka作为服务中的消息总线
-        binder:
-          brokers: localhost:9092
-          zk-nodes: localhost:2181
-      # 设置spring cloud stream的默认绑定器为kafka
-      default-binder: kafka
-  # 设置redis相关信息
-  redis:
-    host: localhost
-    pool: 6379
-    database: 0
-    timeout: 3000
 
-# 当修改了eureka服务的port后,需要将eureka的配置写入到bootstrap.yml中
-# 早于application.yml发现config服务
+# 当修改了eureka服务的port后,需要将eureka的配置写入到bootstrap.yml中, 启动早于application.yml发现config服务
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8762/eureka/
-
-  # 开启zipkin将order数据进行导入
-  zipkin:
-    base-url: http://localhost:9411
-  # 在zipkin中进行请求采样的比例设置为100%
-  sleuth:
-    sampler:
-      probability: 1
-
-# 使用feign组件整合hystrix熔断器
-feign:
-  hystrix:
-    enabled: true
-# 对hystrix中的方法(指定方法/默认方法)设置超时时间
-hystrix:
-  command:
-    default:
-      # 配置hystrix调用服务的超时时间
-      execution:
-        isolation:
-          thread:
-            timeoutInMilliseconds: 1000
-    # 给特定的方法设置超时时间
-    getProductInfoList:
-      execution:
-        isolation:
-          thread:
-            timeoutInMilliseconds: 5000
-# 调整feign中的logging日志的级别为debug
-logging:
-  level:
-    org.springframework.cloud.openfeign: debug
