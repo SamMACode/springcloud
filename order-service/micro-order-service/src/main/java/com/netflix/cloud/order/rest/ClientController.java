@@ -1,5 +1,6 @@
-package com.netflix.cloud.order.controller;
+package com.netflix.cloud.order.rest;
 
+import com.netflix.cloud.order.constant.RequestConstInfo;
 import com.netflix.cloud.product.client.ProductClient;
 import com.netflix.cloud.product.common.DecreaseStockInput;
 import com.netflix.cloud.product.common.ProductInfoOutput;
@@ -24,22 +25,22 @@ public class ClientController {
     @Autowired
     private ProductClient productClient;
 
-    @GetMapping("/getProductMsg")
+    @GetMapping(value = RequestConstInfo.GET_PRODUCT_MSG)
     public String getProductMsg() {
-        // 使用feign进行对order服务的调用.
+        // 使用feign进行对order服务的调用
         String response = productClient.getProductMsg();
         log.info("调用Order模块result为: {}", response);
         return response;
     }
 
-    @GetMapping("/getProductList")
+    @GetMapping(value = RequestConstInfo.GET_PRODUCT_LIST)
     public String getProductList() {
         List<ProductInfoOutput> response = productClient.listForOrder(Arrays.asList("157875227953464068"));
         log.info("response => {}", response);
         return "ok";
     }
 
-    @GetMapping("/productDecreaseStock")
+    @GetMapping(value = RequestConstInfo.DECREASE_PRODUCT_STOCK)
     public String decreaseStock() {
         DecreaseStockInput stockInput = new DecreaseStockInput("164103465734242707", 2);
         productClient.decreaseStock(Arrays.asList(stockInput));

@@ -17,7 +17,6 @@ import java.util.List;
  * @author dong
  * @create 2018-10-05 下午12:01
  **/
-//@Component
 @Slf4j
 public class ProductInfoReceiver {
 

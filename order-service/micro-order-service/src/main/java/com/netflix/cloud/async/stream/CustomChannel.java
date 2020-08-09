@@ -21,7 +21,7 @@ public interface CustomChannel {
     SubscribableChannel input();
 
     /**
-     *
+     * 消息处理完成之后输出的channel
      * @return
      */
     @Output("myMessageOutput")

@@ -12,8 +12,7 @@ import lombok.Getter;
 public enum RoleEnum {
 
     BUYER(1, "卖家用户"),
-    SELLER(2, "卖家用户"),
-    ;
+    SELLER(2, "卖家用户");
 
     private Integer code;
 

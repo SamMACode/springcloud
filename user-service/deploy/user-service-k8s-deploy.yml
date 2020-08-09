@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: svc
+spec:
+  selector:
+    matchLabels:
+      app: user-service
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8762
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+            periodSeconds: 3
+            failureThreshold: 1
+          image: registry.cn-hangzhou.aliyuncs.com/spotify-music/user-service:latest
+          ports:
+            - containerPort: 8084

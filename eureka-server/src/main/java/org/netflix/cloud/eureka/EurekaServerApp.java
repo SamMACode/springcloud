@@ -12,6 +12,10 @@ import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 @EnableEurekaServer
 public class EurekaServerApp {
 
+	/*
+	 * 使用kubectl port-forward eureka-server-7b88f67bc5-mn5g9 8762:8762 --namespace micservice-svc服务转发请求
+	 * 打开node-port命令: minikube service eureka-server-nodeport -n micservice-svc
+	 */
 	public static void main(String[] args) {
 		SpringApplication.run(EurekaServerApp.class, args);
 	}

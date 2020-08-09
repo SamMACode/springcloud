@@ -1,6 +1,6 @@
 package com.netflix.cloud.user.filter;
 
-import com.netflix.cloud.user.constant.ZuulFilterConstant;
+import com.netflix.cloud.user.constant.RequestHeaderConst;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -40,13 +40,13 @@ public class UserContextFilter implements Filter {
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
         // 过滤器从首部中检索关联id，并将值设置在UserContext类
         UserContextHolder.getContext()
-                .setCorrelationId(httpServletRequest.getHeader(ZuulFilterConstant.CORRELATION_ID));
+                .setCorrelationId(httpServletRequest.getHeader(RequestHeaderConst.CORRELATION_ID));
 
         // 设置授权的auth-token信息、组织机构org-id信息
         UserContextHolder.getContext()
-                .setAuthToken(httpServletRequest.getHeader(ZuulFilterConstant.AUTH_TOKEN));
+                .setAuthToken(httpServletRequest.getHeader(RequestHeaderConst.AUTH_TOKEN));
         UserContextHolder.getContext()
-                .setAuthToken(httpServletRequest.getHeader(ZuulFilterConstant.ORG_ID));
+                .setAuthToken(httpServletRequest.getHeader(RequestHeaderConst.ORG_ID));
 
         // 在设置完成之后,filterChain进行放行应用执行后续的流程
         filterChain.doFilter(httpServletRequest, servletResponse);

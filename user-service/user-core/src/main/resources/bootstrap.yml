@@ -17,3 +17,14 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8762/eureka/
+  instance:
+    hostname: user-service.svc
+    metadata-map:
+      instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+
+# exposed /actuator/health path for kubernetes liveness probe
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

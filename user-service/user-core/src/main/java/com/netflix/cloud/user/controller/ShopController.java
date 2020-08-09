@@ -1,6 +1,7 @@
 package com.netflix.cloud.user.controller;
 
 import com.netflix.cloud.user.constant.RedisConstant;
+import com.netflix.cloud.user.constant.RequestConst;
 import com.netflix.cloud.user.vo.ResultVO;
 import com.netflix.cloud.user.constant.CookieConstant;
 import com.netflix.cloud.user.dataobject.UserInfo;
@@ -30,8 +31,7 @@ import java.util.concurrent.TimeUnit;
  * @create 2018-10-06 下午3:05
  **/
 @RestController
-@RequestMapping("/login")
-public class LoginController {
+public class ShopController {
 
     @Autowired
     private UserService userService;
@@ -45,7 +45,7 @@ public class LoginController {
      * @param response
      * @return
      * */
-    @GetMapping("/buyer")
+    @GetMapping(value = RequestConst.BUYER_LOGIN)
     public ResultVO buyer(@RequestParam("openid")String openId, HttpServletResponse response) {
         // 1.根据openid去数据库中查询对应的用户是否存在.
         UserInfo userInfo = userService.findByOpenid(openId);
@@ -62,12 +62,12 @@ public class LoginController {
     }
 
     /**
-     * 用于处理卖家登录的请求.
+     * 用于处理卖家登录的请求
      * @param openId
      * @param response
      * @return
      * */
-    @GetMapping("/seller")
+    @GetMapping(value = RequestConst.SELLER_LOGIN)
     public ResultVO seller(@RequestParam("openid")String openId, HttpServletResponse response, HttpServletRequest request) {
         //判断是否已经登录(cookie不为空并且redis中存储有cookie对应的值),避免每次请求都往Cookie中放置新的值.
         Cookie cookie = CookieUtil.getCookie(request, CookieConstant.TOKEN);

@@ -2,6 +2,7 @@ package com.netflix.cloud.user.repository;
 
 import com.netflix.cloud.user.dataobject.UserInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Component;
 
 /**
  * 使用JPA操作UserInfo

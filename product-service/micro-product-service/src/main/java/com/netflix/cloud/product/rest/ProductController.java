@@ -1,5 +1,6 @@
-package com.netflix.cloud.product.controller;
+package com.netflix.cloud.product.rest;
 
+import com.netflix.cloud.product.constant.RequestInfoConst;
 import com.netflix.cloud.product.vo.ProductInfoVO;
 import com.netflix.cloud.product.vo.ProductVO;
 import com.netflix.cloud.product.vo.ResultVO;
@@ -25,7 +26,6 @@ import java.util.stream.Collectors;
  * @author dong
  * @create 2018-09-23 下午4:58
  **/
-@RequestMapping("/product")
 @RestController
 public class ProductController {
 
@@ -36,12 +36,12 @@ public class ProductController {
     private CategoryService categoryService;
 
     /**
-     * 1.查询所有在架的商品.
-     * 2.获取类目type列表.
-     * 3.查询类目信息.
-     * 4.构造返回数据.
+     * 1.查询所有在架的商品
+     * 2.获取类目type列表
+     * 3.查询类目信息
+     * 4.构造返回数据
      * */
-    @GetMapping("/list")
+    @GetMapping(value = RequestInfoConst.GET_PRODUCT_LIST)
     public ResultVO<ProductVO> list(HttpServletRequest request) {
         // 1.查询所有在架商品.
         List<ProductInfo> productInfoList = productService.findUpAll();
@@ -77,11 +77,11 @@ public class ProductController {
     }
 
     /**
-     * 获取商品列表(主要是提供给订单服务用的).
+     * 获取商品列表(主要是提供给订单服务用的)
      * @param productIdList
      * @return
      * */
-    @PostMapping("/listForOrder")
+    @PostMapping(value = RequestInfoConst.GET_PRODUCT_LIST_FROM_ORDER)
     public List<ProductInfoOutput> listForOrder(@RequestBody List<String> productIdList) throws InterruptedException {
         // 根据商品id编号查询商品详细信息
         List<ProductInfoOutput> productInfoList = productService.findList(productIdList);
@@ -89,10 +89,10 @@ public class ProductController {
     }
 
     /**
-     * 对商品进行减库存.
+     * 对商品进行减库存
      * @param cartList
      * */
-    @PostMapping("/decreaseStock")
+    @PostMapping(value = RequestInfoConst.DECREASE_STOCK_BY_PRODUCT_ID)
     public void decreaseStock(@RequestBody List<DecreaseStockInput> cartList) {
         productService.decreaseStock(cartList);
     }

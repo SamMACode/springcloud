@@ -1,6 +1,6 @@
 package com.netflix.cloud.user.interceptor;
 
-import com.netflix.cloud.user.constant.ZuulFilterConstant;
+import com.netflix.cloud.user.constant.RequestHeaderConst;
 import com.netflix.cloud.user.filter.UserContextHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
@@ -30,8 +30,8 @@ public class UserContextInterceptor implements ClientHttpRequestInterceptor {
                                         ClientHttpRequestExecution execution) throws IOException {
         HttpHeaders headers = request.getHeaders();
         // 在HttpServletRequest中设置"tmx-correlation-id"信息, 以及用于授权的auth-token
-        headers.add(ZuulFilterConstant.CORRELATION_ID, UserContextHolder.getContext().getCorrelationId());
-        headers.add(ZuulFilterConstant.AUTH_TOKEN, UserContextHolder.getContext().getAuthToken());
+        headers.add(RequestHeaderConst.CORRELATION_ID, UserContextHolder.getContext().getCorrelationId());
+        headers.add(RequestHeaderConst.AUTH_TOKEN, UserContextHolder.getContext().getAuthToken());
 
         return execution.execute(request, body);
     }

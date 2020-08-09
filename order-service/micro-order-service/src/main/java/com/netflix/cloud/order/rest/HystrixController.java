@@ -1,5 +1,6 @@
-package com.netflix.cloud.order.controller;
+package com.netflix.cloud.order.rest;
 
+import com.netflix.cloud.order.constant.RequestConstInfo;
 import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
@@ -33,7 +34,7 @@ public class HystrixController {
             @HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "60"),    // 表示打开熔断器的百分比(当调用失败达到60%以上时候)
             @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000")
     }, fallbackMethod = "fallback")
-    @GetMapping("getProductInfoList")
+    @GetMapping(value = RequestConstInfo.HYSTRIX_GET_PRODUCT_LIST)
     public String getProductInfoList(@RequestParam("number") Integer number) {
         if(number % 2 == 0) {
             return "success";

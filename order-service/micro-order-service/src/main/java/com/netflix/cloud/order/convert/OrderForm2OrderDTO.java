@@ -1,4 +1,4 @@
-package com.netflix.cloud.order.converter;
+package com.netflix.cloud.order.convert;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

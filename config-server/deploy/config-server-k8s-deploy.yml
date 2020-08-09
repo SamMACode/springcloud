@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+  namespace: svc
+spec:
+  selector:
+    matchLabels:
+      app: config-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: config-server
+    spec:
+      containers:
+        - name: config-server
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+            periodSeconds: 3
+            failureThreshold: 1
+          image: registry.cn-hangzhou.aliyuncs.com/spotify-music/config-server:latest
+          ports:
+            - containerPort: 8082

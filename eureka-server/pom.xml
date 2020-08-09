@@ -33,8 +33,7 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
     </dependencies>
 
@@ -52,11 +51,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-
             <!-- dockerfile-maven-plugin for building app to docker image -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -83,7 +77,6 @@
 
                 <!-- using maven setting.xml to authorized push docker image to registry -->
                 <configuration>
-                    <!--<useMavenSettingsForAuth>true</useMavenSettingsForAuth>-->
                     <repository>${docker-repository}/${project.name}</repository>
                     <tag>${project.version}</tag>
                     <buildArgs>

@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
  * @author dong
  * @create 2018-10-04 下午11:36
  **/
-//@Component
 @EnableBinding(CustomChannel.class)
 @Slf4j
 public class StreamReceiver {

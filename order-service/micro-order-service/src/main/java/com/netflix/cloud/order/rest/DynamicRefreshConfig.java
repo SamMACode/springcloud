@@ -1,5 +1,6 @@
-package com.netflix.cloud.order.controller;
+package com.netflix.cloud.order.rest;
 
+import com.netflix.cloud.order.constant.RequestConstInfo;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -20,7 +21,7 @@ public class DynamicRefreshConfig {
     @Autowired
     private GirlConfig girlConfig;
 
-    @GetMapping("/gril/refreshconfig")
+    @GetMapping(value = RequestConstInfo.DYNAMIC_REFRESH_SCOPE)
     public String getGrilConfiguration() {
         return girlConfig.getName() + ", " + girlConfig.getAge();
     }

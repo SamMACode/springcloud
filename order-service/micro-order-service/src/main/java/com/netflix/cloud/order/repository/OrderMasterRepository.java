@@ -9,5 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author dong
  * @create 2018-09-25 下午10:15
  **/
-public interface OrderMasterRepository extends JpaRepository<OrderMaster, String>{
+public interface OrderMasterRepository extends JpaRepository<OrderMaster, String> {
 }

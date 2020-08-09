@@ -1,8 +1,9 @@
-package com.netflix.cloud.order.controller;
+package com.netflix.cloud.order.rest;
 
+import com.netflix.cloud.order.constant.RequestConstInfo;
 import com.netflix.cloud.order.vo.ResultVO;
 import com.netflix.cloud.order.vo.ResultVOUtils;
-import com.netflix.cloud.order.converter.OrderForm2OrderDTO;
+import com.netflix.cloud.order.convert.OrderForm2OrderDTO;
 import com.netflix.cloud.order.dto.OrderDTO;
 import com.netflix.cloud.order.enums.OrderResultEnum;
 import com.netflix.cloud.order.exception.OrderException;
@@ -29,7 +30,6 @@ import java.util.Map;
  **/
 @RestController
 @Slf4j
-@RequestMapping("/order")
 public class OrderController {
 
     @Autowired
@@ -42,7 +42,7 @@ public class OrderController {
      * 4.扣库存(调用product服务接口).
      * 5.在order部分生成订单流水信息(master表和detail表).
      * */
-    @RequestMapping("/create")
+    @RequestMapping(value = RequestConstInfo.CREATE_ORDER)
     public ResultVO<Map<String, String>> create(@Valid OrderForm orderForm, BindingResult bindingResult) throws OrderException {
         // 1.第一步对ajax传递来的参数进行校验.
         if(bindingResult.hasErrors()) {
@@ -65,7 +65,7 @@ public class OrderController {
         return ResultVOUtils.success(map);
     }
 
-    @PostMapping("/finish")
+    @PostMapping(value = RequestConstInfo.FINISH_ORDER)
     public ResultVO<OrderDTO> finish(@RequestParam("orderId")String orderId) throws OrderException {
         return ResultVOUtils.success(orderService.finish(orderId));
     }

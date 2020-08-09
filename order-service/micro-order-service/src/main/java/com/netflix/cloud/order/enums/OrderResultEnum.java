@@ -15,8 +15,7 @@ public enum OrderResultEnum {
     CART_EMPTY(2, "购物车为空"),
     ORDER_NOT_EXIST(3, "订单不存在"),
     ORDER_STATUS_ERROR(4, "订单状态错误"),
-    ORDER_DETAILS_IS_EMPTY(5, "订单明细为空"),
-    ;
+    ORDER_DETAILS_IS_EMPTY(5, "订单明细为空");
 
     /**
      * 表示的是异常对应的错误码信息.

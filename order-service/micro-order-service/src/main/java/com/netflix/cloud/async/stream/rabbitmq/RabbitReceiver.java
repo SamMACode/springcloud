@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
  * @author dong
  * @create 2018-10-04 下午10:11
  **/
-//@Component
 @Slf4j
 public class RabbitReceiver {
 

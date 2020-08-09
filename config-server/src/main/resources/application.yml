@@ -11,7 +11,7 @@ spring:
           username: 1253341044@qq.com
           password: qwertyu2345iop
           # 配置spring cloud从远端的git服务器上拉取下来配置文件存放的路径
-          basedir: /Users/madong/datahub-repository/config-dir
+          basedir: /tmp/config-dir
           # 解决当本地git配置文件非最新,则强制其从远程github服务器上拉取最新配置文件
           force-pull: true
 # 设置eureka server端的地址,用于注册eureka服务
@@ -19,6 +19,10 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8762/eureka/
+#  instance:
+#    hostname: config-server.svc
+#    metadata-map:
+#      instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
 # 对外暴露/bus-refresh接口用于被通知配置更新{/actuator/bus-refresh}
 management:
   endpoints:

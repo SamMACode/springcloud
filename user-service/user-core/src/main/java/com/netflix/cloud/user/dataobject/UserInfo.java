@@ -25,4 +25,5 @@ public class UserInfo {
     private String openid;
 
     private Integer role;
+
 }

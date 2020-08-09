@@ -1,8 +1,9 @@
-package com.netflix.cloud.order.controller;
+package com.netflix.cloud.order.rest;
 
 
 import com.alibaba.fastjson.JSONObject;
 import com.netflix.cloud.async.stream.SimpleSourceBean;
+import com.netflix.cloud.order.constant.RequestConstInfo;
 import com.netflix.cloud.order.vo.ResultVO;
 import com.netflix.cloud.product.common.DecreaseStockInput;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ public class StreamKafkaRest {
      * 通过异步请求的方式进行减库存
      * @return
      */
-    @RequestMapping(value = "/decreaseStockAsync", method = RequestMethod.POST)
+    @RequestMapping(value = RequestConstInfo.ASYNC_DECREASE_ORDER, method = RequestMethod.POST)
     public ResultVO decreaseStockAsync(@RequestBody DecreaseStockInput orderParam) {
         LOGGER.info("Start request [{}] , request param orderParam: [{}]", "/decreaseStockAsync",
                 JSONObject.toJSONString(orderParam));

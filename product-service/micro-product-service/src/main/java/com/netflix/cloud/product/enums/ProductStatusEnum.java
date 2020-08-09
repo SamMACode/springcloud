@@ -12,8 +12,7 @@ import lombok.Getter;
 public enum ProductStatusEnum {
 
     UP (0, "商品上架"),
-    DOWN (0, "商品已下架"),
-    ;
+    DOWN (0, "商品已下架");
 
     /**
      * 表示商品status对应的状态码.

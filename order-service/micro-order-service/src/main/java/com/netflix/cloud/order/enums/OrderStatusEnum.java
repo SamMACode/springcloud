@@ -13,8 +13,7 @@ public enum OrderStatusEnum {
 
     NEW (0, "新订单"),
     FINISHED (1, "订单已完结"),
-    CANCELED (2, "订单已取消"),
-    ;
+    CANCELED (2, "订单已取消");
 
     private Integer orderStatus;
 
