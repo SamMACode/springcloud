@@ -36,11 +36,11 @@ public class OrderController {
     private OrderService orderService;
 
     /**
-     * 1.第一步对ajax传递来的参数进行校验.
-     * 2.查询商品服务(调用product服务接口).
-     * 3.计算Order订单中的商品总价.
-     * 4.扣库存(调用product服务接口).
-     * 5.在order部分生成订单流水信息(master表和detail表).
+     * 1.第一步对ajax传递来的参数进行校验
+     * 2.查询商品服务(调用product服务接口)
+     * 3.计算Order订单中的商品总价
+     * 4.扣库存(调用product服务接口)
+     * 5.在order部分生成订单流水信息(master表和detail表)
      * */
     @RequestMapping(value = RequestConstInfo.CREATE_ORDER)
     public ResultVO<Map<String, String>> create(@Valid OrderForm orderForm, BindingResult bindingResult) throws OrderException {
