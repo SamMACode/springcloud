@@ -2,7 +2,7 @@
 spring:
   application:
     name: config-server
-# 配置spring cloud config配置文件在git上的地址
+  # 配置spring cloud config配置文件在git上的地址
   cloud:
     config:
       server:
@@ -14,15 +14,20 @@ spring:
           basedir: /tmp/config-dir
           # 解决当本地git配置文件非最新,则强制其从远程github服务器上拉取最新配置文件
           force-pull: true
+  rabbitmq:
+    host: 192.168.0.103
+    port: 5672
+    username: guest
+    password: guest
 # 设置eureka server端的地址,用于注册eureka服务
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8762/eureka/
-#  instance:
-#    hostname: config-server.svc
-#    metadata-map:
-#      instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+      defaultZone: http://eureka-server.svc:8762/eureka/
+  instance:
+    hostname: config-server.svc
+    metadata-map:
+      instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
 # 对外暴露/bus-refresh接口用于被通知配置更新{/actuator/bus-refresh}
 management:
   endpoints:

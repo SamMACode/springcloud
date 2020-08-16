@@ -1,18 +1,81 @@
 version: "3"
 services:
-  swagger-editor:
-    image: swaggerapi/swagger-editor:latest
+  eureka-server:
+    image: spotify-music/eureka-server:0.0.1  
+    ports:
+      - "8762:8762/tcp"
+
+  config-server:
+    image: spotify-music/config-server:0.0.1
+    depends_on:
+      - eureka-server
+    ports:
+      - "8082:8082/tcp"
+    restart: always    
     deploy:
-      replicas: 6
+      replicas: 1
       resources:
         limits:
-          cpus: "0.1"
-          memory: 50M
+          cpus: '0.5'
+          memory: '1000mb'
+        reservations:
+          cpus: '0.1'
+          memory: '250mb'
+  api-gateway:
+    image: spotify-music/api-gateway:0.0.1
+    depends_on:
+      - eureka-server
+      - config-server    
+    ports:
+      - "8086:8086/tcp"
+    restart: always    
+    deploy:
+      replicas: 1
+  user-service:
+    image: spotify-music/user-core:0.0.1
+    restart: always
+    deploy:
       restart_policy:
         condition: on-failure
+        delay: 15s
+        max_attempts: 5
+        window: 120s    
+    depends_on:
+      - eureka-server
+      - config-server     
     ports:
-      - "8081:8080"
-    networks:
-      - webnet
-networks:
-  webnet:
+      - "8084:8084/tcp"
+    deploy:
+      replicas: 1  
+  order-service:
+    image: spotify-music/micro-order-service:0.0.1
+    restart: always
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 5
+        window: 120s     
+    depends_on:
+      - eureka-server
+      - config-server     
+    ports:
+      - "8085:8085/tcp"
+    deploy:
+      replicas: 1 
+  product-service:
+    image: spotify-music/micro-product-service:0.0.1
+    restart: always
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 5
+        window: 120s     
+    depends_on:
+      - eureka-server
+      - config-server     
+    ports:
+      - "8083:8083/tcp"
+    deploy:
+      replicas: 1         

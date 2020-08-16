@@ -7,7 +7,7 @@ spec:
   selector:
     matchLabels:
       app: user-service
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -18,11 +18,11 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8762
-            initialDelaySeconds: 15
-            timeoutSeconds: 2
-            periodSeconds: 3
-            failureThreshold: 1
-          image: registry.cn-hangzhou.aliyuncs.com/spotify-music/user-service:latest
+              port: 8084
+            initialDelaySeconds: 10
+            timeoutSeconds: 15
+            periodSeconds: 60
+            failureThreshold: 6
+          image: registry.cn-shanghai.aliyuncs.com/spotify-music/user-service:latest
           ports:
             - containerPort: 8084

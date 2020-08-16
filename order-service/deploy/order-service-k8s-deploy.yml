@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: config-server
+  name: order-service
   namespace: svc
 spec:
   selector:
     matchLabels:
-      app: config-server
+      app: order-service
   replicas: 1
   template:
     metadata:
       labels:
-        app: config-server
+        app: order-service
     spec:
       containers:
-        - name: config-server
+        - name: order-service
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8082
+              port: 8762
             initialDelaySeconds: 10
             timeoutSeconds: 15
             periodSeconds: 60
             failureThreshold: 6
-          image: registry.cn-shanghai.aliyuncs.com/spotify-music/config-server:latest
+          image: registry.cn-shanghai.aliyuncs.com/spotify-music/order-service:latest
           ports:
-            - containerPort: 8082
+            - containerPort: 8085
