@@ -12,6 +12,20 @@ spring:
       # 配置配置文件中的profile类型为dev
       profile: dev
 
+  # 开启zipkin将order数据进行导入
+  zipkin:
+    base-url: http://192.168.0.101:9411/
+    sender:
+      type: web
+    discovery-client-enabled: false
+  # 在zipkin中进行请求采样的比例设置为100%
+  sleuth:
+    sampler:
+      probability: 1
+    web:
+      client:
+        enabled: true
+
 # 当修改了eureka服务的port后,需要将eureka的配置写入到bootstrap.yml中, 启动早于application.yml发现config服务
 eureka:
   client:

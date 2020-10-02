@@ -17,7 +17,7 @@ import java.util.List;
  * @create 2018-10-03 下午2:45
  **/
 @Component
-@FeignClient(name = "product", fallback = ProductClient.ProductClientFallback.class)
+@FeignClient(name = "PRODUCT-SERVICE", fallback = ProductClient.ProductClientFallback.class)
 public interface ProductClient {
 
     @GetMapping("/msg")

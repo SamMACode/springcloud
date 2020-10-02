@@ -4,6 +4,8 @@ import com.netflix.cloud.order.constant.RequestConstInfo;
 import com.netflix.cloud.product.client.ProductClient;
 import com.netflix.cloud.product.common.DecreaseStockInput;
 import com.netflix.cloud.product.common.ProductInfoOutput;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,11 +35,25 @@ public class ClientController {
         return response;
     }
 
+    /**
+     * 获取目前数据库中所有商品列表信息
+     *
+     * @return
+     */
+    @HystrixCommand(threadPoolKey = "product-service-threadpool",
+            threadPoolProperties = {
+                    @HystrixProperty(name = "coreSize", value = "30"),
+                    @HystrixProperty(name = "maxQueueSize", value = "10")
+            },
+            commandProperties = {
+                    @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "10000")
+            }
+    )
     @GetMapping(value = RequestConstInfo.GET_PRODUCT_LIST)
-    public String getProductList() {
-        List<ProductInfoOutput> response = productClient.listForOrder(Arrays.asList("157875227953464068"));
+    public List<ProductInfoOutput> getProductList() {
+        List<ProductInfoOutput> response = productClient.listForOrder(Arrays.asList("164103465734242707", "157875196366160022"));
         log.info("response => {}", response);
-        return "ok";
+        return response;
     }
 
     @GetMapping(value = RequestConstInfo.DECREASE_PRODUCT_STOCK)

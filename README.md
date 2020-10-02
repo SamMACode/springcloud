@@ -150,3 +150,62 @@ eureka-server-6sdf9cb081-23ndp   1/1     Running   4         11h
 
 要打算从宿主机的`port`访问`eureka dashboard`可使用`kubectl port-forward eureka-server-6sdf9cb081-23ndp 8762:8762 --namespace svc `命令，此时即可通过宿主机的`8762`端口进行服务访问。
 
+### 使用Netflix Hystrix的客户端弹性模式
+
+客户端弹性软件模式的重点是：在远程服务发生错误或表现不佳时保护远程资源（另一个微服务调用或者数据库资源）的客户端免于崩溃。这些模式的目标是让客户端“快速失败”，而不消耗诸如数据库连接和线程池之类的宝贵资源。共有4种客户端弹性模式，分别是：客户端负载均衡（`client load balance`）模式、断路器（`circuit breaker`）模式、后备（`fallback`）模式、舱壁（`bulkhead`）模式。
+
+客户端负载均衡主要是通过`netflix eureka`查找服务的所有实例，然后缓存服务实例的物理位置。每当有服务消费者需要调用服务实例时，客户端负载均衡器将从它维护的服务位置池返回一个位置。默认使用`Netflix Ribbon`进行客户端服务调用，当客户端均衡器检测到问题，它可以从可用服务位置池中移除该服务实例，并防止将来的服务调用访问该服务实例。
+
+`spring cloud`使用`hystrix`实现断路器模式，通过在方法上标注`@HystrixCommand`注解来将`Java`类方法标记为由`Hystrix`断路器进行管理。其将动态生成一个代理，该代理将包装该方法，并通过专门用于处理远程调用的线程池来管理对该方法的所有调用。
+
+```java
+@HystrixCommand(commandProperties = {
+  @HystrixProperty(name = "circuitBreaker.enabled", value = "true"),     // 设置熔断是否开启
+  @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "10"),   // 表示在滚动期断路器的最小请求数
+  @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "10000"),  // 设置熔断器时间窗的时间
+  @HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "60"),    // 表示打开熔断器的百分比(当调用失败达到60%以上时候)
+  @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000")
+}, fallbackMethod = "fallback")
+@GetMapping(value = RequestConstInfo.HYSTRIX_GET_PRODUCT_LIST)
+public String getProductInfoList(@RequestParam("number") Integer number) {
+  if(number % 2 == 0) {
+    return "success";
+  }
+  RestTemplate restTemplate = new RestTemplate();
+  return restTemplate.postForObject("http://localhost:8083/product/listForOrder",
+                                    Arrays.asList("157875196366160022"),
+                                    String.class);
+}
+
+private String fallback(Integer number) {
+        return "太拥挤了，请稍后重试~~";
+}
+```
+
+`hystix`默认的断路器时间为`1000ms`，熔断超时时间可通过`@HystixCommand`注解的`execution.isolation.thread.timeoutInMilliseconds`进行配置，当服务调用超过配置的时间时，会自动进行熔断。在后备处理模式中，通过给`@HystrixCommand`的`fallbackMethod`属性指定默认方法用于在发生熔断时进行调用。
+
+舱壁模式是建立在造船的概念基础上的，采用舱壁设计，一艘船被划分为完全隔离和防水的隔间，这称为舱壁。即使船的船体被击穿，由于船被划分为水密舱（舱壁），舱壁会将水限制被击穿的船的区域内，防止整艘船灌满水并沉没。`hystrix`使用线程池进行资源的隔离，每个远程资源都是隔离的，并分配给线程池。如果一个服务响应缓慢，那么这种服务调用的线程池就会饱和并停止处理请求，而对其它服务的调用则不会变得饱和，因为它们被分配给了其他线程池。
+
+```java
+@HystrixCommand(threadPoolKey = "product-service-threadpool",
+                threadPoolProperties = {
+                  @HystrixProperty(name = "coreSize", value = "30"),
+                  @HystrixProperty(name = "maxQueueSize", value = "10")
+                })
+@GetMapping(value = RequestConstInfo.GET_PRODUCT_LIST)
+public String getProductList() {
+  List<ProductInfoOutput> response = productClient.listForOrder(Arrays.asList("157875227953464068"));
+  log.info("response => {}", response);
+  return "ok";
+}
+```
+
+在`@HystrixCommand`注解中引入了一个新属性`threadPoolKey`，其表明我们想要建立一个新的线程池。要定制线程池配置，应使用其`threadPoolProperties`属性，此属性使用`HystrixProperty`对象的数组控制线程池的行为，使用`coreSize`属性可以设置线程池的大小、用`maxQueueSize`设置请求队列的大小，一旦请求数超过队列大小，对线程池的任何其他请求都将失败，直到队列中有空间。
+
+### 使用Spring Cloud Sleuth和Zipkin进行分布式跟踪
+
+微服务架构是一种强大的设计范型，可以将复杂的单体软件系统分解为更小、更易于管理的部分。这些可管理的部分可以独立构建和部署，其提供的灵活性提升了服务管理上复杂度。服务的分布式特性意味着必须在多个服务、物理机器和不同的数据存储之间跟踪一个或多个事务。使用关联`ID`将跨多个服务的事务链接在一起、将来自多个服务的日志聚合为一个可搜索的源、可视化跨多个服务的用户事务流并理解事务每个部分的性能特征。
+
+<img src="document/images/springcloud-zipkin.png" alt="springcloud-zipkin" style="zoom:50%;" />
+
+可使用`sleuth`和`zipkin`进行分布式链路跟踪，`zipkin`是一种凯源数据可视化工具，可以显示跨多个服务的事务流。`zipkin`允许开发人员将事务分解到它的组件块中，并可视化地识别可能存在性能热点的位置。

@@ -15,7 +15,7 @@ spring:
           # 解决当本地git配置文件非最新,则强制其从远程github服务器上拉取最新配置文件
           force-pull: true
   rabbitmq:
-    host: 192.168.0.103
+    host: 192.168.0.101
     port: 5672
     username: guest
     password: guest
