@@ -208,4 +208,4 @@ public String getProductList() {
 
 <img src="document/images/springcloud-zipkin.png" alt="springcloud-zipkin" style="zoom:50%;" />
 
-可使用`sleuth`和`zipkin`进行分布式链路跟踪，`zipkin`是一种凯源数据可视化工具，可以显示跨多个服务的事务流。`zipkin`允许开发人员将事务分解到它的组件块中，并可视化地识别可能存在性能热点的位置。
+可使用`sleuth`和`zipkin`进行分布式链路跟踪，`zipkin`是一种开源数据可视化工具，可以显示跨多个服务的事务流。`zipkin`允许开发人员将事务分解到它的组件块中，并可视化地识别可能存在性能热点的位置。
