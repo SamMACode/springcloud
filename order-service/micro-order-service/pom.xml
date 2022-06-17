@@ -11,7 +11,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <fastjson.version>1.2.61</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
         <product.client.version>0.0.1</product.client.version>
         <docker-repository>spotify-music</docker-repository>
     </properties>
